@@ -1,0 +1,179 @@
+{
+  "version": "1",
+  "qualified": "2026-11-12",
+  "samples": [
+    {
+      "id": "idr0076-10501752",
+      "name": "IDR0076 \u00b7 breast tumour tissue \u00b7 cell labels",
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/",
+      "ngff": "0.4",
+      "zarr": 2,
+      "dtype": "float64",
+      "codecs": ["blosc-lz4"],
+      "axes": ["c", "y", "x"],
+      "shape": [50, 494, 464],
+      "levels": ["0", "1", "2", "3"],
+      "spatialScales": [1, 2, 4, 8],
+      "spatialUnit": "pixel",
+      "labelGroup": "labels/0",
+      "labelAxes": ["c", "y", "x"],
+      "labelShape": [1, 494, 464],
+      "alignment": "Matching XY shapes, scale and zero translation at levels 0\u20133; label channel is singleton",
+      "defaultChannels": [42],
+      "displayOverride": "DNA1-191Ir channel 42 is metadata-inactive; selected intentionally for a simple nuclear display",
+      "defaultSegmentation": "labels",
+      "defaultCropSize": 32,
+      "defaultTile": 256,
+      "semantics": "2D cell-section masks, not whole 3D cells",
+      "browserStatus": "Verified Chromium Zarrita and independent Python checksums; CORS metadata and chunks",
+      "attribution": "Ali et al., IDR0076, CC BY 4.0",
+      "license": "CC-BY-4.0",
+      "channelNames": [
+        "Total HH3-113In",
+        "Xe126-126Xe",
+        "I127-127I",
+        "Xe131-131Xe",
+        "Xe134-134Xe",
+        "H3K27me3-139La",
+        "Ce140-140Ce",
+        "CK5-141Pr",
+        "Fibronectin-Nd142",
+        "CK19-143Nd",
+        "CK8_18-144Nd",
+        "Twist-145Nd",
+        "CD68-146Nd",
+        "CK14-147Sm",
+        "SMA-148Nd",
+        "Vimentin-149Sm",
+        "C-myc-Nd150",
+        "HER2-Eu151",
+        "CD3-Sm152",
+        "p-HH3-Eu153",
+        "p-ERK1/2-154Sm",
+        "Slug-155Gd",
+        "ER-156Gd",
+        "PR-158Gd",
+        "p53-159Tb",
+        "CD44-160Gd",
+        "EpCAM-161Dy",
+        "CD45-162Dy",
+        "GATA3-163Dy",
+        "CD20-164Dy",
+        "Beta-catenin-165Ho",
+        "CAIX-166Er",
+        "E_Cadherin-167Er",
+        "Ki67-168Er",
+        "EGFR-169Tm",
+        "pS6-170Er",
+        "Sox9-171Yb",
+        "vWF-CD31-Yb172",
+        "mTOR-173Yb",
+        "CK7-174Yb",
+        "panCK-175Lu",
+        "cPARP-cCasp3-176Yb",
+        "DNA1-191Ir",
+        "DNA2-193Ir",
+        "Hg202-202Hg",
+        "Pb202-202Pb",
+        "Pb206-206Pb",
+        "Pb207-207Pb",
+        "Pb208-208Pb",
+        "ArAr80-80ArAr"
+      ],
+      "transforms": [
+        [
+          {
+            "scale": [1.0, 1.0, 1.0],
+            "type": "scale"
+          }
+        ],
+        [
+          {
+            "scale": [1.0, 2.0, 2.0],
+            "type": "scale"
+          }
+        ],
+        [
+          {
+            "scale": [1.0, 4.0, 4.0],
+            "type": "scale"
+          }
+        ],
+        [
+          {
+            "scale": [1.0, 8.0, 8.0],
+            "type": "scale"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "idr0033-BR00109990-C2-0",
+      "name": "IDR0033 \u00b7 supplied Cell Painting source",
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.5/idr0033A/BR00109990_C2.zarr/0/",
+      "ngff": "0.5",
+      "zarr": 3,
+      "dtype": "uint16",
+      "codecs": ["bytes-little", "zstd"],
+      "axes": ["c", "y", "x"],
+      "shape": [5, 1552, 2080],
+      "levels": ["0", "1", "2", "3", "4", "5"],
+      "spatialScales": [0.3, 0.6, 1.2, 2.4, 4.8, 9.6],
+      "spatialUnit": "micrometer",
+      "channelNames": [
+        "Nuclei",
+        "ER",
+        "Nucleoli/Cytoplasmic RNA",
+        "Actin/Golgi/Membrane",
+        "Mitochondria"
+      ],
+      "defaultChannels": [0, 1, 2],
+      "labelGroup": null,
+      "defaultSegmentation": "model",
+      "defaultCropSize": 64,
+      "defaultTile": 256,
+      "semantics": "Already 2D; StarDist produces nucleus masks, not whole-cell boundaries",
+      "browserStatus": "Verified Chromium Zarrita and independent Python checksums; transient chunk transport failures observed",
+      "attribution": "IDR0033A, Image Data Resource / EMBL-EBI; see source study for reuse terms",
+      "license": "See IDR study",
+      "transforms": [
+        [
+          {
+            "type": "scale",
+            "scale": [1.0, 0.3, 0.3]
+          }
+        ],
+        [
+          {
+            "type": "scale",
+            "scale": [1.0, 0.6, 0.6]
+          }
+        ],
+        [
+          {
+            "type": "scale",
+            "scale": [1.0, 1.2, 1.2]
+          }
+        ],
+        [
+          {
+            "type": "scale",
+            "scale": [1.0, 2.4, 2.4]
+          }
+        ],
+        [
+          {
+            "type": "scale",
+            "scale": [1.0, 4.8, 4.8]
+          }
+        ],
+        [
+          {
+            "type": "scale",
+            "scale": [1.0, 9.6, 9.6]
+          }
+        ]
+      ]
+    }
+  ]
+}

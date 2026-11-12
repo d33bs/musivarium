@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message><Key>zarr/v0.4/idr0076A/10501752.zarr/0/.zattrs</Key><BucketName>idr</BucketName><Resource>/idr/zarr/v0.4/idr0076A/10501752.zarr/0/.zattrs</Resource><RequestId>18E72FF284A478EB</RequestId><HostId>54b010ed-8961-4fc6-b7b1-76200f2e5c61</HostId></Error>

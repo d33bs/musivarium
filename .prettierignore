@@ -1,0 +1,10 @@
+node_modules
+dist
+public/models
+public/vendor
+public/duckdb-zarr
+package-lock.json
+plan.md
+tests/fixtures/*.bin
+tests/browser/fixtures/*.body
+src/segmentation/STARDIST-LICENSE.txt

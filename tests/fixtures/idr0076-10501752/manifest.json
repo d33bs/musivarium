@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "dataset": "IDR0076",
+  "image_id": "10501752",
+  "image_group": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/",
+  "label_group": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/labels/0/",
+  "region": {
+    "x": 160,
+    "y": 224,
+    "width": 64,
+    "height": 64,
+    "level": 0,
+    "channel": 42,
+    "z": 0,
+    "t": 0
+  },
+  "projection": "none; source has c,y,x axes and no z or t axis",
+  "transform": "unaltered native 2D slice, C order, little endian; no rescaling, normalization, inference or relabeling",
+  "channel": {
+    "index": 42,
+    "name": "DNA1-191Ir",
+    "application_override": true
+  },
+  "label_semantics": "whole-cell instance regions in a 2D breast tumour tissue section; IDs are image-local, background=0",
+  "calibration": "native pixel units; spatial physical unit is not declared in NGFF metadata",
+  "license": {
+    "spdx": "CC-BY-4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/",
+    "attribution": "Ali et al., Imaging mass cytometry and multiplatform genomics define the phenogenomic landscape of breast cancer, Nature Cancer (2020); IDR0076 / image 10501752, distributed by IDR.",
+    "changes": "Only an unaltered 64 x 64 native-pixel region is redistributed; fixture packaging and independent measurements added.",
+    "evidence": "https://raw.githubusercontent.com/IDR/idr0076-ali-metabric/276992b791d35ab4cdafe0f75190f328d4aed4fc/idr0076-study.txt"
+  },
+  "source_hash_contract": "SHA-256 of exact HTTP response bodies, including compressed Zarr chunks; fixture hashes below cover decoded, cropped native bytes (not .npy headers). URLs may be mutable; hash mismatches fail rather than silently refreshing.",
+  "sources": [
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/.zgroup",
+      "bytes": 24,
+      "sha256": "2383746e67b4bcc2762b3f100f06c3fa2d5f149ab5a8e5da5d33521464a01959"
+    },
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/.zattrs",
+      "bytes": 24827,
+      "sha256": "65f072a35b697a0f3d770a04a124efe58d1f5733cbaccfd8e2cc19c93fbfdaff"
+    },
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/0/.zarray",
+      "bytes": 396,
+      "sha256": "13971cf180f9419a0f47a2a908da704cb2f453d97c16b014fdb91582b56d4546"
+    },
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/0/42/0/0",
+      "bytes": 897324,
+      "sha256": "41c2f135363251292b327719958737d6802d70b51742139e3c7b3b39b6ab52cd"
+    },
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/labels/0/.zgroup",
+      "bytes": 24,
+      "sha256": "2383746e67b4bcc2762b3f100f06c3fa2d5f149ab5a8e5da5d33521464a01959"
+    },
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/labels/0/.zattrs",
+      "bytes": 603536,
+      "sha256": "f6a2fa30fe23a2fe76c4f8a869fefad86d7ac91e2d51c9fe54cedffb34192ac3"
+    },
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/labels/0/0/.zarray",
+      "bytes": 393,
+      "sha256": "a0d459f8f7c4cbd8927f7f86ea2f7949b1db83a8dabef0bd1d3d12b25f35416b"
+    },
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/labels/0/0/0/0/0",
+      "bytes": 71072,
+      "sha256": "5b2122e4b622705084cb6de478bcf5b471c78afdace171aad5207297fce2249b"
+    },
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/labels/0/0/0/1/0",
+      "bytes": 76259,
+      "sha256": "a78d66338e194c5da3bb7033047e5f24795e61fa3f9036dbd25b94208b2ff202"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/IDR/idr0076-ali-metabric/276992b791d35ab4cdafe0f75190f328d4aed4fc/idr0076-study.txt",
+      "bytes": 12625,
+      "sha256": "b38b3e6bd2543fb1c804fc469c3506a4a99c524714786fe28fb94caa5bca2476"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/IDR/idr0076-ali-metabric/276992b791d35ab4cdafe0f75190f328d4aed4fc/experimentA/rois.py",
+      "bytes": 3060,
+      "sha256": "d97967da90a64f8803e0d6ddacd2ab5946e69c7f5447faf5e6b799532fb7caf4"
+    }
+  ],
+  "files": {
+    "image": {
+      "path": "image-c42.f64le",
+      "dtype": "<f8",
+      "shape": [64, 64],
+      "bytes": 32768,
+      "sha256": "7a5ea59c974ffb6bd7b0f3fb730c72079e40cb843b4545fd5b35cc001c0655b0"
+    },
+    "labels": {
+      "path": "labels.i16le",
+      "dtype": "<i2",
+      "shape": [64, 64],
+      "bytes": 8192,
+      "sha256": "bdcdeb5694767bc44c355c57ed26b2faf3818752628e91f46093d1afd2cdc5d2"
+    }
+  }
+}

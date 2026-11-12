@@ -1,0 +1,39 @@
+{
+  "name": "musivarium",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "vitest run",
+    "test:browser": "playwright test",
+    "typecheck": "tsc --noEmit",
+    "setup:assets": "node scripts/setup-assets.mjs",
+    "validate:live": "node scripts/validate-live.mjs",
+    "test:static": "node scripts/smoke-static.mjs",
+    "validate:reference": "uv run scripts/validate-reference.py",
+    "format": "prettier --write src tests scripts docs public/datasets.json *.json *.ts *.html *.md .github/workflows",
+    "format:check": "prettier --check src tests scripts docs public/datasets.json *.json *.ts *.html *.md .github/workflows",
+    "check": "npm run typecheck && npm test && npm run build"
+  },
+  "dependencies": {
+    "@duckdb/duckdb-wasm": "1.33.1-dev57.0",
+    "apache-arrow": "17.0.0",
+    "fflate": "0.8.3",
+    "onnxruntime-web": "1.31.1",
+    "zarrita": "0.7.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "@types/node": "24.10.1",
+    "prettier": "3.10.0",
+    "typescript": "5.9.3",
+    "vite": "8.3.8",
+    "vitest": "5.1.0"
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "description": "Offline integration snapshots: unmodified original HTTP entity bodies including Blosc-compressed source chunks. Not synthetic microscopy and not a live-network qualification.",
+  "attribution": {
+    "dataset": "IDR0076 / Ali et al. / image 10501752",
+    "license": "CC-BY-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "source": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/"
+  },
+  "entries": [
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/.zgroup",
+      "key": ".zgroup",
+      "file": "2383746e67b4bcc2762b3f100f06c3fa2d5f149ab5a8e5da5d33521464a01959.body",
+      "sha256": "2383746e67b4bcc2762b3f100f06c3fa2d5f149ab5a8e5da5d33521464a01959",
+      "bytes": 24,
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "capturedUtc": "2026-11-12T03:54:13.153075+00:00",
+      "etag": "\"e20297935e73dd0154104d4ea53040ab\""
+    },
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/.zattrs",
+      "key": ".zattrs",
+      "file": "65f072a35b697a0f3d770a04a124efe58d1f5733cbaccfd8e2cc19c93fbfdaff.body",
+      "sha256": "65f072a35b697a0f3d770a04a124efe58d1f5733cbaccfd8e2cc19c93fbfdaff",
+      "bytes": 24827,
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "capturedUtc": "2026-11-12T03:54:13.257766+00:00",
+      "etag": "\"4d0a0cfde15868f131ce2dcae97c9bce\""
+    },
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/labels/.zattrs",
+      "key": "labels/.zattrs",
+      "file": "54d1c02be5e50b2d3c3228c7987b2937793ddc2b4dd36becd281a1e888b034d5.body",
+      "sha256": "54d1c02be5e50b2d3c3228c7987b2937793ddc2b4dd36becd281a1e888b034d5",
+      "bytes": 37,
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "capturedUtc": "2026-11-12T03:54:13.658163+00:00",
+      "etag": "\"c97d7c95611dc5992b6bd1834519e40f\""
+    },
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/labels/0/.zgroup",
+      "key": "labels/0/.zgroup",
+      "file": "2383746e67b4bcc2762b3f100f06c3fa2d5f149ab5a8e5da5d33521464a01959.body",
+      "sha256": "2383746e67b4bcc2762b3f100f06c3fa2d5f149ab5a8e5da5d33521464a01959",
+      "bytes": 24,
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "capturedUtc": "2026-11-12T03:54:54.685087+00:00",
+      "etag": "\"e20297935e73dd0154104d4ea53040ab\""
+    },
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/labels/0/.zattrs",
+      "key": "labels/0/.zattrs",
+      "file": "f6a2fa30fe23a2fe76c4f8a869fefad86d7ac91e2d51c9fe54cedffb34192ac3.body",
+      "sha256": "f6a2fa30fe23a2fe76c4f8a869fefad86d7ac91e2d51c9fe54cedffb34192ac3",
+      "bytes": 603536,
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "capturedUtc": "2026-11-12T03:54:15.644101+00:00",
+      "etag": "\"4ca905cd12938a06485136ed1313b67b\""
+    },
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/0/.zarray",
+      "key": "0/.zarray",
+      "file": "13971cf180f9419a0f47a2a908da704cb2f453d97c16b014fdb91582b56d4546.body",
+      "sha256": "13971cf180f9419a0f47a2a908da704cb2f453d97c16b014fdb91582b56d4546",
+      "bytes": 396,
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "capturedUtc": "2026-11-12T03:54:13.957202+00:00",
+      "etag": "\"2fac3803347a9a8589b7b6adc47bafd9\""
+    },
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/0/.zattrs",
+      "key": "0/.zattrs",
+      "file": "099864ed36618c37682f1105db0c9dc77d0e34b2bc3d635a5da8f210f3394370.body",
+      "sha256": "099864ed36618c37682f1105db0c9dc77d0e34b2bc3d635a5da8f210f3394370",
+      "bytes": 369,
+      "status": 404,
+      "contentType": "application/xml",
+      "capturedUtc": "2026-11-12T03:54:55.212929+00:00",
+      "etag": null
+    },
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/labels/0/0/.zarray",
+      "key": "labels/0/0/.zarray",
+      "file": "a0d459f8f7c4cbd8927f7f86ea2f7949b1db83a8dabef0bd1d3d12b25f35416b.body",
+      "sha256": "a0d459f8f7c4cbd8927f7f86ea2f7949b1db83a8dabef0bd1d3d12b25f35416b",
+      "bytes": 393,
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "capturedUtc": "2026-11-12T03:54:55.986091+00:00",
+      "etag": "\"c51f77687c6b6972ac8a2d839164dcef\""
+    },
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/labels/0/0/.zattrs",
+      "key": "labels/0/0/.zattrs",
+      "file": "c02d525773c1581790324cf318bd7522ff177e05bfd62a0d5b7b656b7a26f0d1.body",
+      "sha256": "c02d525773c1581790324cf318bd7522ff177e05bfd62a0d5b7b656b7a26f0d1",
+      "bytes": 387,
+      "status": 404,
+      "contentType": "application/xml",
+      "capturedUtc": "2026-11-12T03:54:56.783770+00:00",
+      "etag": null
+    },
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/0/42/0/0",
+      "key": "0/42/0/0",
+      "file": "41c2f135363251292b327719958737d6802d70b51742139e3c7b3b39b6ab52cd.body",
+      "sha256": "41c2f135363251292b327719958737d6802d70b51742139e3c7b3b39b6ab52cd",
+      "bytes": 897324,
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "capturedUtc": "2026-11-12T03:57:28.056459+00:00",
+      "etag": "\"5a693a594caa8d9f9d69956a37723de2\""
+    },
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/labels/0/0/0/0/0",
+      "key": "labels/0/0/0/0/0",
+      "file": "5b2122e4b622705084cb6de478bcf5b471c78afdace171aad5207297fce2249b.body",
+      "sha256": "5b2122e4b622705084cb6de478bcf5b471c78afdace171aad5207297fce2249b",
+      "bytes": 71072,
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "capturedUtc": "2026-11-12T03:57:04.060778+00:00",
+      "etag": "\"b12cf924036dc37b2c1ab31ea6989073\""
+    },
+    {
+      "url": "https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr/labels/0/0/0/1/0",
+      "key": "labels/0/0/0/1/0",
+      "file": "a78d66338e194c5da3bb7033047e5f24795e61fa3f9036dbd25b94208b2ff202.body",
+      "sha256": "a78d66338e194c5da3bb7033047e5f24795e61fa3f9036dbd25b94208b2ff202",
+      "bytes": 76259,
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "capturedUtc": "2026-11-12T03:57:05.218032+00:00",
+      "etag": "\"adf0240b401915436e9e52c34ba05512\""
+    }
+  ]
+}
