@@ -31,7 +31,7 @@ Each mosaic tile has a microphone button opening a **Voice notes** box. The insp
 - Manual typing works without microphone, model or persistent storage (export the draft in the latter case). Manual notes are labelled `source: manual`, never falsely attributed to Whisper.
 - Sampling and voice inference are serialized. Beginning recording releases the idle image-processing worker/model without discarding its mosaic or exports; the ASR worker is released after each transcription or cancellation. Subsequent image sampling recreates its worker as needed. The runtimes do not share inference sessions or memory, even though the npm ORT-Web version is deduplicated.
 
-Microphone capture needs HTTPS (GitHub Pages) or localhost and permission after an explicit click. No special server routes, cross-origin isolation or WebGPU are required. See [voice implementation and browser checks](docs/voice-notes.md) and [speech evaluation](docs/voice-evaluation.md). The new feature remains local until the reviewed changes are committed/pushed and the Pages workflow is dispatched.
+Microphone capture needs HTTPS (GitHub Pages) or localhost and permission after an explicit click. No special server routes, cross-origin isolation or WebGPU are required. See [voice implementation and browser checks](docs/voice-notes.md) and [speech evaluation](docs/voice-evaluation.md). Pushing changes to `main` automatically publishes them through the Pages workflow.
 
 ## Included real datasets
 
@@ -93,7 +93,7 @@ npm run build
 npm run preview
 ```
 
-Publish only `dist/`, never the repository root. For GitHub project Pages, use `BASE_PATH=/musivarium/ npm run build`. The manual **Publish Pages** workflow builds the project-prefix bundle and uploads `dist/`; the maintainer must enable Pages with GitHub Actions and dispatch the workflow after reviewing and pushing changes. Nothing has been published automatically.
+Publish only `dist/`, never the repository root. For GitHub project Pages, use `BASE_PATH=/musivarium/ npm run build`. The **Publish Pages** workflow runs automatically on every push to `main`, runs the unit tests and type checks, builds the project-prefix bundle, and publishes `dist/` if those checks pass. Manual publication remains available through **Run workflow**. Pages must be configured to use GitHub Actions.
 
 The static host must serve WASM with `application/wasm`; remote image hosting must allow CORS from the site's actual origin. No cross-origin-isolation headers or WebGPU are required. Hosted-origin CORS is not guaranteed by localhost testing; verify the deployed URL with `npm run validate:live` after publication. Safari is a best-effort target until separately exercised.
 

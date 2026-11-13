@@ -1,6 +1,8 @@
 name: Publish Pages
-# Manual publication only. Enable Pages / GitHub Actions in repository settings first.
+# Publish every push to main; keep manual publication available.
 'on':
+  push:
+    branches: [main]
   workflow_dispatch:
 permissions: {}
 concurrency:
