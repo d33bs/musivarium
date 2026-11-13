@@ -49,7 +49,7 @@ describe('sampling to single-object crops', () => {
       t: 0,
       level: 0,
       segmentation: 'classical',
-      reader: 'browser',
+      reader: 'duckdb-zarr',
     });
     expect(a.cells[0].crop.channels[0]).toBeInstanceOf(Uint16Array);
     expect(a.cells[0].cell_id).toBe(

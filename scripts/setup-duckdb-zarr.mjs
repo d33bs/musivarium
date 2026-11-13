@@ -1,132 +1,147 @@
 #!/usr/bin/env node
 /**
- * No production artifact is installed: the pinned reader fails the bounded-ROI
- * requirement. --audit reproduces the REAL browser SQL/network regression in
- * a separate scratch project. It never fetches an image dataset or changes
- * this project's package.json, node_modules, or public/ directory.
+ * Install the pinned official runtime/extensions for the production chunk-view
+ * reader. --audit separately reproduces direct whole-store bounds limitations
+ * in an isolated scratch project using INSTALL zarr FROM community.
  */
-import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile, copyFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 
 const PIN = Object.freeze({
   repository: 'xqlsystems/duckdb-zarr',
-  sourceCommit: '473cb3b203ff0c2f7f330bc6a4c0cbe4ed5c6474',
-  run: '40233921996',
-  artifact: 'zarr-v2.0.0-extension-wasm_eh',
-  sha256: '90517bfb2b190cd0f88b8f326c92eac2cf22e47e2aac200082264757bfbdf1e2',
-  runtime: '1.33.1-dev110.0',
-  engine: 'v2.0.0-dev88614',
-  metadataRuntime: '1.33.1-dev57.0',
+  distribution: 'community-extensions.duckdb.org',
+  maintainers: ['alxmrs', 'd33bs'],
+  duckdbVersion: 'v2.0.0',
+  platform: 'wasm_eh',
+  url: 'https://community-extensions.duckdb.org/v2.0.0/wasm_eh/zarr.duckdb_extension.wasm',
+  sha256: 'b28752c96e613b74a5575a7f0115d8084820f1c6a99c7f6f729e6babe34a465a',
+  runtime: '1.33.1-dev114.0',
+  engine: 'v2.0.0',
+  realDataset: 'https://livingobjects.ebi.ac.uk/idr/zarr/v0.4/idr0076A/10501752.zarr',
 });
+
 async function main() {
   const args = process.argv.slice(2);
-  if (args.length !== 1 || args[0] !== '--audit') {
-    console.error('UNBOUNDED_OME_READ: DuckDB-Zarr is unavailable for single-plane OME crops.');
-    console.error(
-      'No production artifacts installed. Run node scripts/setup-duckdb-zarr.mjs --audit to reproduce the browser blocker.',
-    );
-    process.exitCode = 2;
-  } else {
+  if (args.length === 0) {
+    await import('./setup-assets.mjs');
+  } else if (args.length === 1 && args[0] === '--audit') {
     await audit();
+  } else {
+    console.error('Usage: node scripts/setup-duckdb-zarr.mjs [--audit]');
+    process.exitCode = 2;
   }
 }
 
 async function audit() {
   const root = resolve(
     process.env.MUSIVARIUM_AUDIT_DIR ??
-      join(homedir(), '.hermes', 'cache', 'scratch', 'musivarium-duckdb-bounded-audit'),
+      join(homedir(), '.hermes', 'cache', 'scratch', 'musivarium-duckdb-community-audit'),
   );
-  const artifactDir = join(root, 'artifact');
-  await mkdir(artifactDir, { recursive: true });
-  const run = (command, args, cwd = root) =>
-    execFileSync(command, args, {
-      cwd,
+  await mkdir(root, { recursive: true });
+  const response = await fetch(PIN.url, { signal: AbortSignal.timeout(30_000) });
+  if (!response.ok) throw Error(`Pinned community extension download HTTP ${response.status}`);
+  const binary = new Uint8Array(await response.arrayBuffer());
+  const digest = createHash('sha256').update(binary).digest('hex');
+  if (digest !== PIN.sha256) throw Error(`Extension SHA-256 mismatch: ${digest}`);
+
+  const packageJSON = {
+    private: true,
+    type: 'module',
+    dependencies: { '@duckdb/duckdb-wasm': PIN.runtime },
+    devDependencies: { vite: '8.3.8', '@playwright/test': '1.65.0' },
+  };
+  await writeFile(join(root, 'package.json'), `${JSON.stringify(packageJSON, null, 2)}\n`);
+  await writeFile(join(root, 'vite.config.js'), "export default { appType: 'mpa' };\n");
+  const { execFileSync } = await import('node:child_process');
+  const run = (command, cmdArgs) =>
+    execFileSync(command, cmdArgs, {
+      cwd: root,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'inherit'],
       timeout: 180_000,
     });
-  const workflow = JSON.parse(
-    run('gh', ['run', 'view', PIN.run, '--repo', PIN.repository, '--json', 'headSha,conclusion']),
-  );
-  if (workflow.headSha !== PIN.sourceCommit || workflow.conclusion !== 'success')
-    throw Error('Pinned CI source/conclusion mismatch');
-  const binary = join(artifactDir, 'zarr.duckdb_extension.wasm');
-  try {
-    await readFile(binary);
-  } catch (error) {
-    if (error.code !== 'ENOENT') throw error;
-    run('gh', [
-      'run',
-      'download',
-      PIN.run,
-      '--repo',
-      PIN.repository,
-      '--name',
-      PIN.artifact,
-      '--dir',
-      artifactDir,
-    ]);
-  }
-  const digest = createHash('sha256')
-    .update(await readFile(binary))
-    .digest('hex');
-  if (digest !== PIN.sha256) throw Error(`Extension SHA-256 mismatch: ${digest}`);
-  const license = await fetch(
-    `https://raw.githubusercontent.com/${PIN.repository}/${PIN.sourceCommit}/LICENSE`,
-  );
-  if (!license.ok) throw Error(`Pinned LICENSE returned HTTP ${license.status}`);
-  await writeFile(join(artifactDir, 'LICENSE'), await license.text());
-  const packageJSON = {
-    private: true,
-    type: 'module',
-    dependencies: {
-      '@duckdb/duckdb-wasm': PIN.runtime,
-      'duckdb-metadata-runtime': `npm:@duckdb/duckdb-wasm@${PIN.metadataRuntime}`,
-      vite: '7.3.7',
-      '@playwright/test': '1.65.0',
-    },
-  };
-  await writeFile(join(root, 'package.json'), `${JSON.stringify(packageJSON, null, 2)}\n`);
   console.log(run('npm', ['install', '--ignore-scripts']));
   console.log(run('npm', ['exec', '--', 'playwright', 'install', 'chromium']));
-  const publicDir = join(root, 'public');
-  await mkdir(publicDir, { recursive: true });
-  await copyFile(binary, join(publicDir, 'zarr.duckdb_extension.wasm'));
-  await fixture(publicDir);
+
+  // Verify the public distribution before running it; installation itself uses
+  // INSTALL zarr FROM community in the browser, not a custom repository.
+  await fixture(join(root, 'public'), false);
+  await fixture(join(root, 'public'), true);
   await writeFile(
     join(root, 'index.html'),
-    '<!doctype html><title>Synthetic Zarr read audit</title><script type="module" src="/audit.js"></script>',
+    '<!doctype html><title>Community duckdb-zarr audit</title><script type="module" src="/audit.js"></script>',
   );
-  await writeFile(join(root, 'audit.js'), BROWSER_PROBE);
+  await writeFile(join(root, 'audit.js'), BROWSER_PROBE(PIN.realDataset));
   await writeFile(join(root, 'run-browser.mjs'), RUN_BROWSER);
   console.log(run(process.execPath, ['run-browser.mjs']));
-  const result = JSON.parse(await readFile(join(root, 'audit-result.json'), 'utf8'));
-  if (result.version !== PIN.engine) throw Error(`Unexpected pinned engine: ${result.version}`);
-  if (!result.boundsError?.includes("dimension 'z' has no coordinate array"))
-    throw Error('Expected bounds failure did not reproduce; reevaluate support');
-  if (result.chunkRequests.length !== 24 || result.otherPlanes.length !== 16)
-    throw Error('Expected unpruned scan did not reproduce; reevaluate support');
-  if (JSON.stringify(result.rows.map((row) => row.value)) !== '[111,112,121,122]')
-    throw Error('Actual SQL crop values differ from format fixture');
+
+  const { trials } = JSON.parse(await readFile(join(root, 'audit-result.json'), 'utf8'));
+  const trial = (name) => {
+    const result = trials.find((t) => t.name === name);
+    if (!result || result.version !== PIN.engine || result.pageErrors.length)
+      throw Error(`Trial ${name} failed runtime checks`);
+    if (
+      !result.extensions.length ||
+      result.extensions.some(
+        (e) =>
+          e.status !== 200 ||
+          e.sha256 !== PIN.sha256 ||
+          new URL(e.url).hostname !== PIN.distribution,
+      )
+    )
+      throw Error(`Trial ${name} did not load the pinned public community extension`);
+    return result;
+  };
+  const where = trial('synthetic-where'),
+    bounded = trial('synthetic-bounds'),
+    control = trial('coordinates-bounds'),
+    realWhere = trial('real-where'),
+    realBounds = trial('real-bounds'),
+    suppliedBounds = trial('supplied-bounds');
+  for (const check of [where, control]) {
+    if (check.error || JSON.stringify(check.rows?.map((r) => r.value)) !== '[111,112,121,122]')
+      throw Error(`${check.name}: wrong SQL values: ${check.error}`);
+  }
+  const otherPlanes = where.chunkRequests.filter(
+    (url) => new URL(url).pathname.split('/').at(-1).split('.')[1] !== '1',
+  );
+  if (otherPlanes.length !== 16 || where.chunkRequests.length !== 24)
+    throw Error('WHERE scan behavior changed; reevaluate bounded support');
+  for (const check of [bounded, realBounds, suppliedBounds]) {
+    if (!check.error?.includes('no coordinate array') || check.chunkRequests.length !== 0)
+      throw Error(`${check.name}: positional bounds behavior changed; reevaluate support`);
+  }
+  const expected = ['0.1.0.0', '0.1.0.1', '0.1.1.0', '0.1.1.1'];
   if (
-    result.metadataVersion !== 'v1.5.4' ||
-    !result.metadataExtensionError?.includes('Unsupported C CAPI version')
+    JSON.stringify(
+      control.chunkRequests.map((url) => new URL(url).pathname.split('/').at(-1)).sort(),
+    ) !== JSON.stringify(expected)
   )
-    throw Error('Metadata runtime compatibility changed; reevaluate artifact');
+    throw Error(
+      'Explicit-coordinate positive control did not prune to exactly the four intersecting chunks',
+    );
+  if (
+    realWhere.error ||
+    realWhere.chunkRequests.length !== 50 ||
+    !Number.isFinite(realWhere.rows?.[0]?.mean) ||
+    Math.abs(realWhere.rows[0].mean - 17.040815875715996) > 1e-6
+  )
+    throw Error('Real IDR channel scan did not reproduce; inspect audit-result.json');
   console.log(
     JSON.stringify(
       {
-        supported: false,
+        direct_store_bounds_supported: false,
+        production_reader_mode: 'bounded-complete-chunk-views',
         code: 'UNBOUNDED_OME_READ',
         pin: PIN,
-        engine: result.version,
-        metadataEngine: result.metadataVersion,
-        cropPixels: result.rows.length,
-        chunksFetched: result.chunkRequests.length,
-        otherPlaneChunks: result.otherPlanes.length,
+        installation: 'INSTALL zarr FROM community; LOAD zarr;',
+        trials: trials.map((t) => ({
+          name: t.name,
+          dataChunks: t.chunkRequests.length,
+          error: t.error,
+        })),
         evidence: join(root, 'audit-result.json'),
       },
       null,
@@ -136,11 +151,13 @@ async function audit() {
 }
 
 /** Explicit synthetic FORMAT fixture, not a biological dataset or mocked SQL. */
-async function fixture(publicDir) {
-  const root = join(publicDir, 'synthetic.zarr');
+async function fixture(publicDir, coordinates) {
+  const root = join(publicDir, coordinates ? 'coordinates.zarr' : 'synthetic.zarr');
+  const metadata = {};
   const json = async (path, data) => {
-    await mkdir(dirname(path), { recursive: true });
+    await mkdir(join(path, '..'), { recursive: true });
     await writeFile(path, JSON.stringify(data));
+    metadata[path.slice(root.length + 1)] = data;
   };
   await json(join(root, '.zgroup'), { zarr_format: 2 });
   await json(join(root, '.zattrs'), {
@@ -165,7 +182,35 @@ async function fixture(publicDir) {
     order: 'C',
     filters: null,
   });
-  await json(join(root, '0', '.zattrs'), {});
+  await json(join(root, '0', '.zattrs'), { _ARRAY_DIMENSIONS: ['c', 'z', 'y', 'x'] });
+  if (coordinates) {
+    for (const [dim, length] of [
+      ['c', 2],
+      ['z', 3],
+      ['y', 4],
+      ['x', 4],
+    ]) {
+      await json(join(root, dim, '.zarray'), {
+        zarr_format: 2,
+        shape: [length],
+        chunks: [length],
+        dtype: '<i4',
+        compressor: null,
+        fill_value: null,
+        order: 'C',
+        filters: null,
+      });
+      await json(join(root, dim, '.zattrs'), { _ARRAY_DIMENSIONS: [dim] });
+      const data = Buffer.alloc(length * 4);
+      for (let i = 0; i < length; i++) data.writeInt32LE(i, i * 4);
+      await writeFile(join(root, dim, '0'), data);
+    }
+  }
+  // Consolidate BOTH format stores so only the presence of coordinates differs.
+  await writeFile(
+    join(root, '.zmetadata'),
+    JSON.stringify({ zarr_consolidated_format: 1, metadata }),
+  );
   for (let c = 0; c < 2; c++)
     for (let z = 0; z < 3; z++) {
       for (let y = 0; y < 2; y++)
@@ -183,59 +228,95 @@ async function fixture(publicDir) {
     }
 }
 
-const BROWSER_PROBE = `
+const BROWSER_PROBE = (realDataset) => `
 import * as duckdb from '@duckdb/duckdb-wasm';
-import wasm from '@duckdb/duckdb-wasm/dist/duckdb-base.wasm?url';
-import worker from '@duckdb/duckdb-wasm/dist/duckdb-browser-base.worker.js?url';
-import * as metadataRuntime from 'duckdb-metadata-runtime';
-import metadataWasm from 'duckdb-metadata-runtime/dist/duckdb-eh.wasm?url';
-import metadataWorker from 'duckdb-metadata-runtime/dist/duckdb-browser-eh.worker.js?url';
-window.audit = (async () => {
-  const extension = location.origin + '/zarr.duckdb_extension.wasm';
-  const oldDB = new metadataRuntime.AsyncDuckDB(new metadataRuntime.VoidLogger(), new Worker(metadataWorker));
-  await oldDB.instantiate(metadataWasm);
-  await oldDB.open({ allowUnsignedExtensions: true });
-  const oldConnection = await oldDB.connect();
-  const metadataVersion = (await oldConnection.query('SELECT version() AS v')).toArray()[0].v;
-  let metadataExtensionError;
-  try { await oldConnection.query("LOAD '" + extension + "'"); } catch(e) { metadataExtensionError = e.message; }
-  await oldConnection.close(); await oldDB.terminate();
-  const db = new duckdb.AsyncDuckDB(new duckdb.VoidLogger(), new Worker(worker));
-  await db.instantiate(wasm);
+import mainModule from '@duckdb/duckdb-wasm/dist/duckdb-base.wasm?url';
+import mainWorker from '@duckdb/duckdb-wasm/dist/duckdb-browser-base.worker.js?url&worker';
+async function engine() {
+  const worker = new Worker(mainWorker, { type: 'module' });
+  const db = new duckdb.AsyncDuckDB(new duckdb.VoidLogger(), worker);
+  await db.instantiate(mainModule);
   await db.open({ allowUnsignedExtensions: true });
   const connection = await db.connect();
-  const version = (await connection.query('SELECT version() AS v')).toArray()[0].v;
-  await connection.query("LOAD '" + extension + "'");
-  const source = location.origin + '/synthetic.zarr';
-  const boundsSQL = "SELECT c,z,y,x,value FROM read_zarr('" + source + "', array_path := '0', bounds := [['z','1','1'],['y','1','2'],['x','1','2'],['c','0','0']])";
-  let boundsError;
-  try { await connection.query(boundsSQL); } catch(e) { boundsError = e.message; }
-  const sql = "SELECT c,z,y,x,value FROM read_zarr('" + source + "', array_path := '0') WHERE c=0 AND z=1 AND y BETWEEN 1 AND 2 AND x BETWEEN 1 AND 2 ORDER BY y,x";
-  const rows = (await connection.query(sql)).toArray().map(row => Object.fromEntries(Object.entries(row.toJSON()).map(([k,v]) => [k,typeof v==='bigint'?Number(v):v])));
-  await connection.close(); await db.terminate();
-  return { metadataVersion, metadataExtensionError, version, boundsSQL, boundsError, sql, rows };
-})();
+  await connection.query('SET autoinstall_known_extensions=false');
+  await connection.query('SET autoload_known_extensions=false');
+  await connection.query('INSTALL zarr FROM community');
+  await connection.query('LOAD zarr');
+  return { db, connection };
+}
+window.runTrial = async (name) => {
+  const { db, connection } = await engine();
+  try {
+    const version = (await connection.query('SELECT version() AS v')).toArray()[0].v;
+    const bounds = "[['c','0','0'],['z','1','1'],['y','1','2'],['x','1','2']]";
+    const formatSource = location.origin + (name === 'coordinates-bounds' ? '/coordinates.zarr' : '/synthetic.zarr');
+    const sqls = {
+      'synthetic-where': "SELECT c,z,y,x,value FROM read_zarr('" + formatSource + "', array_path := '0') WHERE c=0 AND z=1 AND y BETWEEN 1 AND 2 AND x BETWEEN 1 AND 2 ORDER BY y,x",
+      'synthetic-bounds': "SELECT c,z,y,x,value FROM read_zarr('" + formatSource + "', array_path := '0', bounds := " + bounds + ") ORDER BY y,x",
+      'coordinates-bounds': "SELECT c,z,y,x,value FROM read_zarr('" + formatSource + "', array_path := '0', bounds := " + bounds + ") ORDER BY y,x",
+      'supplied-bounds': "SELECT c,y,x,value FROM read_zarr('https://livingobjects.ebi.ac.uk/idr/zarr/v0.5/idr0033A/BR00109990_C2.zarr/0/', array_path := '0', bounds := [['c','0','0'],['y','0','63'],['x','0','63']]) ORDER BY y,x",
+      'real-where': "SELECT c, AVG(value) AS mean FROM read_zarr('${realDataset}', array_path := '0') WHERE c = 42 GROUP BY c",
+      'real-bounds': "SELECT c,y,x,value FROM read_zarr('${realDataset}', array_path := '0', bounds := [['c','42','42'],['y','0','63'],['x','0','63']]) ORDER BY y,x",
+    };
+    const sql = sqls[name];
+    if (!sql) throw Error('Unknown audit trial: ' + name);
+    try {
+      const rows = (await connection.query(sql)).toArray().map(row =>
+        Object.fromEntries(Object.entries(row.toJSON()).map(([k,v]) => [k,typeof v==='bigint'?Number(v):v])));
+      return { name, version, sql, rows };
+    } catch (e) {
+      return { name, version, sql, error: e.message };
+    }
+  } finally {
+    await connection.close(); await db.terminate();
+  }
+};
 `;
 
 const RUN_BROWSER = `
 import { chromium } from '@playwright/test';
 import { createServer } from 'vite';
 import { writeFile } from 'node:fs/promises';
-const server = await createServer({appType:'mpa',server:{host:'127.0.0.1',port:5198,strictPort:true}});
+import { createHash } from 'node:crypto';
+const server = await createServer({appType:'mpa',server:{host:'127.0.0.1',port:0,hmr:false}});
 await server.listen();
+const origin = 'http://127.0.0.1:' + server.httpServer.address().port;
 let browser;
 try {
   browser = await chromium.launch({headless:true});
-  const page = await browser.newPage();
-  const requests=[];
-  page.on('request',request=>{if(request.url().includes('/synthetic.zarr/')) requests.push({url:new URL(request.url()).pathname,method:request.method()});});
-  await page.goto('http://127.0.0.1:5198');
-  const result = await page.evaluate(()=>window.audit);
-  result.requests=requests;
-  result.chunkRequests=[...new Set(requests.filter(r=>/\\/\\d+\\.\\d+\\.\\d+\\.\\d+$/.test(r.url)).map(r=>r.url))];
-  result.otherPlanes=result.chunkRequests.filter(p=>p.split('/').at(-1).split('.')[1]!=='1');
-  await writeFile('audit-result.json',JSON.stringify(result,null,2));
-  console.log(JSON.stringify({version:result.version,metadataVersion:result.metadataVersion,rows:result.rows,chunkCount:result.chunkRequests.length,otherPlaneChunkCount:result.otherPlanes.length},null,2));
+  const trials = [];
+  for (const name of ['synthetic-where','synthetic-bounds','coordinates-bounds','real-where','real-bounds','supplied-bounds']) {
+    const page = await browser.newPage();
+    const requests=[], pageErrors=[], signatures=[];
+    const extensionResponses=[];
+    page.on('request',request=>requests.push({url:request.url(),method:request.method()}));
+    page.on('pageerror',e=>pageErrors.push(e.message));
+    page.on('response',response=>{
+      if (response.url().endsWith('/zarr.duckdb_extension.wasm')) {
+        extensionResponses.push(response.body().then(body=>{
+          signatures.push({url:response.url(),status:response.status(),sha256:createHash('sha256').update(body).digest('hex')});
+        }));
+      }
+    });
+    await page.goto(origin);
+    await page.waitForFunction(()=>typeof window.runTrial === 'function',undefined,{timeout:30000});
+    const timeout=setTimeout(()=>void page.close(),90000);
+    let result;
+    try { result=await page.evaluate(name=>window.runTrial(name),name); }
+    finally { clearTimeout(timeout); }
+    await Promise.all(extensionResponses);
+    result.requests=requests;
+    result.pageErrors=pageErrors;
+    result.extensions=signatures;
+    result.chunkRequests=[...new Set(requests.filter(r=>r.method==='GET').map(r=>r.url).filter(url=>{
+      const p=new URL(url).pathname;
+      return /\\/0\\/\\d+\\.\\d+\\.\\d+\\.\\d+$/.test(p) || /10501752.zarr\\/0\\/\\d+\\/\\d+\\/\\d+$/.test(p) || /BR00109990_C2.zarr\\/0\\/0\\/c\\//.test(p);
+    }))];
+    trials.push(result);
+    await writeFile('audit-result.json',JSON.stringify({trials},null,2));
+    console.log(JSON.stringify({name,error:result.error,rows:result.rows?.length,chunks:result.chunkRequests.length,extensions:result.extensions}));
+    await page.close();
+  }
 } finally {await browser?.close();await server.close();}
 `;
 

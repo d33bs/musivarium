@@ -1,5 +1,4 @@
 /// <reference lib="webworker" />
-import { BrowserSource } from './sources/browser';
 import { runPipeline } from './pipeline';
 import { openImageSource } from './sources/factory';
 import type { Settings } from './core';
@@ -12,8 +11,9 @@ self.onmessage = async (
   const send = (type: string, data: unknown) => self.postMessage({ id, type, data });
   try {
     if (action === 'inspect') {
-      const source = await BrowserSource.open(
+      const source = await openImageSource(
           settings.source,
+          settings.reader,
           controller.signal,
           new ReadSession(controller.signal, (p) => send('network', p)),
         ),

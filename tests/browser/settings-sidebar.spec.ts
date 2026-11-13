@@ -53,7 +53,8 @@ test('the top bar shows an About dialog and a GitHub Source link, no tagline', a
   const dialog = page.locator('#about');
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole('link', { name: 'picture-thousand-records' })).toHaveCount(0);
-  await expect(dialog.getByRole('link', { name: 'zarrita' })).toBeVisible();
+  await expect(dialog.getByRole('link', { name: 'DuckDB-Zarr', exact: true })).toBeVisible();
+  await expect(dialog.getByRole('link', { name: 'zarrita' })).toHaveCount(0);
   await expect(dialog.getByRole('link', { name: 'DuckDB-WASM' })).toBeVisible();
   await expect(dialog.getByRole('link', { name: 'ONNX Runtime Web' })).toBeVisible();
   await page.getByRole('button', { name: 'Close about dialog' }).click();

@@ -17,7 +17,7 @@ Open the localhost address printed by Vite. Asset setup copies the pinned DuckDB
 1. Open the page: **IDR0076 / verified cell labels** loads automatically and collects up to 100 objects. Settings start collapsed so the mosaic gets the full width.
 2. Use **Show settings** to choose another preset (loads automatically) or adjust sampling controls, then **Sample objects** to apply manual edits. **Shuffle & sample** and **Cancel** stay visible outside the sidebar.
 3. Change order, area/intensity filters, channel visibility, contrast, context and outlines without downloading the image again. Click a crop to inspect its mask, source region, coordinates, native measurements and physical scale.
-4. Copy a reproducible URL or export the visible objects. SQL returning `cell_id` selects objects in the mosaic; aggregate queries display a table instead. SQL itself is local, not part of a shared URL.
+4. Copy a reproducible URL or export the visible objects. CSV/Parquet exports follow the current area/intensity filters. There is no SQL editor in the demo.
 
 A shared URL restores the sampling/display settings and loads the mosaic automatically. Invalid shared settings show an error without silently loading default data. Use Cancel to stop an automatic load.
 
@@ -30,12 +30,12 @@ The checked-in [manifest](public/datasets.json) records verified versions, shape
 
 ## What runs where
 
-- **Zarrita 0.7.5:** bounded original OME-Zarr chunk decoding in a module worker.
+- **DuckDB-Zarr:** the actual image and label decoder, running in DuckDB-WASM inside the processing worker. Bounded browser downloads supply complete single-chunk in-memory views containing unchanged source payloads; SQL extracts native pixels and restores their original coordinates. No Zarrita fallback.
 - **Existing labels:** aligned native instance IDs; no inference.
 - **StarDist DSB2018:** real, pinned ONNX inference using single-threaded CPU/WASM, not WebGPU. A 2D nuclear-fluorescence model with rasterized instance postprocessing. See [model limitations and provenance](docs/segmentation.md).
 - **Classical:** Otsu/raw-threshold + 8-connected components. Touching objects can merge; not presented as a neural model.
 - **DuckDB-WASM:** queryable object metadata and actual CSV/Parquet serialization.
-- **DuckDB-Zarr image backend:** deliberately unavailable. The audited binary fetched every chunk despite a cropped SQL `WHERE`; explicit bounds rejected positional OME axes. It also did not match the app runtime's C API. See [reproducible audit](docs/duckdb-zarr.md). No full-volume workaround or silent fallback is enabled. This is the plan's explicit delivery fallback, not completion of the extension port.
+- **Official extension assets:** the published community Zarr extension and matching Parquet extension are checksum-pinned and self-hosted. Source URLs, wrapper metadata and executed SQL are recorded in Run JSON. See [image-reader design and verification](docs/duckdb-zarr.md). Zarrita remains a dev-only reference-test dependency, not a production reader.
 
 ## Scientific and resource constraints
 
@@ -51,10 +51,10 @@ Limits: 32 regions, 128/256/512 px region sizes, 1–4 selected channels, target
 
 ## Exports
 
-- **CSV / Parquet:** native measurements and source/region/plane, instance ID, segmentation/model version, channels, raw means, seed, complete run settings and crop geometry. For object queries they match the visible mosaic; an active aggregate query exports that result table instead.
+- **CSV / Parquet:** native measurements and source/region/plane, instance ID, segmentation/model version, channels, raw means, seed, complete run settings and crop geometry. They match the visible, filtered mosaic.
 - **Native crops ZIP:** one directory per visible object, row-major native-dtype `.npy` channels, uint32 label plane including neighboring objects, and a full manifest. Use the selected instance ID to isolate an object. No JPEG/intensity quantization.
 - **PNG:** display-normalized mosaic or selected-object preview, not raw quantitative data.
-- **Run JSON:** source metadata, sampling settings, transforms, actual requested objects/bytes, timings, warnings, visible IDs and display/query state. Save this alongside exports for durable reproducibility if a remote source changes.
+- **Run JSON:** source metadata, sampling settings, transforms, actual requested objects/bytes, timings, warnings, visible IDs, display state and explicit original-chunk-to-decoder-view mappings. Save this alongside exports for durable reproducibility if a remote source changes.
 
 ## Verify
 
@@ -71,7 +71,7 @@ npm audit --audit-level=moderate
 
 Unit/scientific tests and browser regression fixtures are offline. Browser fixtures retain actual original IDR metadata/compressed chunks, not generated microscopy. `npm run validate:live` separately checks real remote data against the independent Python reference and may fail on network/CORS changes; see [scientific validation](docs/scientific-validation.md).
 
-An optional segmentation evaluation and bounded DuckDB-Zarr audit are documented separately. Passing an audit of a blocker does not enable the blocked backend.
+An optional segmentation evaluation and a separate direct-store DuckDB-Zarr bounds audit are documented separately. The production reader uses complete bounded chunk views; the direct-store audit documents why whole-source WHERE/bounds is not used.
 
 ## Static hosting
 

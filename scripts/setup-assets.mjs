@@ -5,7 +5,7 @@ const target = new URL('../public/vendor/', import.meta.url);
 await mkdir(target, { recursive: true });
 const manifest = { generated: new Date().toISOString(), files: [] };
 for (const [directory, pattern] of [
-  ['@duckdb/duckdb-wasm/dist', /^(duckdb-(mvp|eh)\.wasm|duckdb-browser-(mvp|eh)\.worker\.js)$/],
+  ['@duckdb/duckdb-wasm/dist', /^(duckdb-base\.wasm|duckdb-browser-base\.worker\.js)$/],
   ['onnxruntime-web/dist', /^ort-wasm-simd-threaded\.(wasm|mjs)$/],
 ]) {
   const source = new URL(`../node_modules/${directory}/`, import.meta.url);
@@ -20,8 +20,6 @@ for (const [directory, pattern] of [
     });
   }
 }
-await writeFile(new URL('manifest.json', target), JSON.stringify(manifest, null, 2) + '\n');
-console.log(JSON.stringify(manifest, null, 2));
 const extensionPins = JSON.parse(
   await readFile(new URL('./runtime-assets.json', import.meta.url), 'utf8'),
 );
@@ -39,7 +37,8 @@ for (const asset of extensionPins.extensions) {
     createHash('sha256').update(bytes).digest('hex') === asset.sha256;
   if (!valid(data)) {
     const response = await fetch(asset.url, { signal: AbortSignal.timeout(60000) });
-    if (!response.ok) throw Error(`Parquet extension download: HTTP ${response.status}`);
+    if (!response.ok || !response.body)
+      throw Error(`${asset.path} download: HTTP ${response.status}`);
     const parts = [];
     let size = 0;
     for await (const part of response.body) {
@@ -48,10 +47,13 @@ for (const asset of extensionPins.extensions) {
       parts.push(Buffer.from(part));
     }
     data = Buffer.concat(parts);
-    if (!valid(data)) throw Error('Parquet extension SHA-256/size mismatch');
+    if (!valid(data)) throw Error(`${asset.path} SHA-256/size mismatch`);
     await writeFile(path, data);
   }
   console.log(`Verified ${asset.path} ${asset.sha256}`);
+  manifest.files.push({ name: asset.path, bytes: asset.bytes, sha256: asset.sha256 });
 }
+await writeFile(new URL('manifest.json', target), JSON.stringify(manifest, null, 2) + '\n');
+console.log(JSON.stringify(manifest, null, 2));
 const { setupModel } = await import('./setup-model.mjs');
 await setupModel();

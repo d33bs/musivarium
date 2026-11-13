@@ -22,11 +22,10 @@
     "check": "npm run typecheck && npm test && npm run build"
   },
   "dependencies": {
-    "@duckdb/duckdb-wasm": "1.33.1-dev57.0",
+    "@duckdb/duckdb-wasm": "1.33.1-dev114.0",
     "apache-arrow": "17.0.0",
     "fflate": "0.8.3",
-    "onnxruntime-web": "1.31.1",
-    "zarrita": "0.7.5"
+    "onnxruntime-web": "1.31.1"
   },
   "devDependencies": {
     "@playwright/test": "1.65.0",
@@ -34,6 +33,7 @@
     "prettier": "3.10.0",
     "typescript": "5.9.3",
     "vite": "8.3.8",
-    "vitest": "5.1.0"
+    "vitest": "5.1.0",
+    "zarrita": "0.7.5"
   }
 }

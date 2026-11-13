@@ -1,5 +1,7 @@
 # Reading progress and concurrency
 
+The timing comparisons below predate the DuckDB-Zarr integration and describe the earlier Zarrita path. Shared transport progress/concurrency caps remain in use; these are not DuckDB-Zarr performance measurements.
+
 The former progress bar counted completed regions. With a single default region it stayed at zero until both metadata and pixel reads were complete. The image/label metadata and channel reads also had sequential dependencies that were not necessary for data correctness.
 
 ## Changes

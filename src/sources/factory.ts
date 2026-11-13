@@ -1,15 +1,13 @@
 import type { ReaderBackend } from '../core';
-import type { ImageSource } from './types';
-import { BrowserSource } from './browser';
+import { DuckDBZarrSource } from './duckdb-zarr';
 import type { ReadSession } from './read-session';
-import { DuckDBZarrUnavailableError } from './duckdb-zarr';
+/** Legacy shared links also use DuckDB-Zarr; there is no Zarrita fallback. */
 export async function openImageSource(
   url: string,
-  backend: ReaderBackend,
+  _backend: ReaderBackend,
   signal: AbortSignal,
   session?: ReadSession,
-): Promise<ImageSource> {
+) {
   signal.throwIfAborted();
-  if (backend === 'duckdb-zarr') throw new DuckDBZarrUnavailableError();
-  return BrowserSource.open(url, signal, session);
+  return DuckDBZarrSource.open(url, signal, session);
 }

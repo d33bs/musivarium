@@ -47,7 +47,7 @@ const report = {
   started: new Date().toISOString(),
   origin: base.origin,
   browser: browserName,
-  module: new URL('/src/sources/browser.ts', base).href,
+  module: new URL('/src/sources/duckdb-zarr.ts', base).href,
   image_source: manifest.image_group,
   label_source: manifest.label_group,
   region: manifest.region,
@@ -85,7 +85,8 @@ try {
       await page.goto(report.module, { waitUntil: 'load', timeout: 30000 });
       const actual = await page.evaluate(
         async ({ manifest }) => {
-          const { BrowserSource, validateLabelAlignment } = await import('/src/sources/browser.ts');
+          const { DuckDBZarrSource } = await import('/src/sources/duckdb-zarr.ts');
+          const { validateLabelAlignment } = await import('/src/sources/metadata.ts');
           const { extractObjects } = await import('/src/core.ts');
           const signal = AbortSignal.timeout(90000);
           let imageSource, labelSource;
@@ -94,8 +95,8 @@ try {
               value.toString(16).padStart(2, '0'),
             ).join('');
           try {
-            imageSource = await BrowserSource.open(manifest.image_group, signal);
-            labelSource = await BrowserSource.open(manifest.label_group, signal);
+            imageSource = await DuckDBZarrSource.open(manifest.image_group, signal);
+            labelSource = await DuckDBZarrSource.open(manifest.label_group, signal);
             const imageAlignment = await imageSource.alignment(0),
               labelAlignment = await labelSource.alignment(0);
             validateLabelAlignment(imageAlignment, labelAlignment);

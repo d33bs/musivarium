@@ -11,13 +11,12 @@ import {
   type Region,
 } from './core';
 import {
-  BrowserSource,
   validateLabelAlignment,
   type Alignment,
   type NgffMetadata,
   type NetworkStats,
   type PlaneRequest,
-} from './sources/browser';
+} from './sources/metadata';
 import type { ImageSource } from './sources/types';
 import { openImageSource } from './sources/factory';
 import { ReadSession, type NetworkProgress } from './sources/read-session';
@@ -99,7 +98,6 @@ export async function runPipeline(
     const sourceTask = options.source
       ? Promise.resolve(options.source)
       : openImageSource(s.source, s.reader, signal, session);
-    if (s.reader === 'duckdb-zarr') await sourceTask;
     let labelSource = options.labels,
       labelMetadataMs = 0;
     const labelStarted = performance.now();
@@ -112,11 +110,12 @@ export async function runPipeline(
           throw Error(
             'No existing labels found. Choose a label group or another segmentation backend.',
           );
-        labels = await BrowserSource.open(
+        labels = await openImageSource(
           /^https?:/.test(path)
             ? path
             : new URL(`labels/${path.replace(/^labels\//, '')}`, s.source.replace(/\/*$/, '/'))
                 .href,
+          s.reader,
           signal,
           session,
         );
@@ -334,6 +333,8 @@ export async function runPipeline(
       source.stats.decoded_bytes =
         (source.stats.decoded_bytes ?? 0) + (labelSource.stats.decoded_bytes ?? 0);
       source.stats.objects.push(...labelSource.stats.objects);
+      if (source.stats.chunk_views && labelSource.stats.chunk_views)
+        source.stats.chunk_views.push(...labelSource.stats.chunk_views);
     }
     if (cells.length < s.target)
       warnings.push(

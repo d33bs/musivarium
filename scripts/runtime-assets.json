@@ -1,17 +1,17 @@
 {
-  "engine": "v1.5.4",
+  "engine": "v2.0.0",
   "extensions": [
     {
-      "url": "https://extensions.duckdb.org/v1.5.4/wasm_eh/parquet.duckdb_extension.wasm",
-      "path": "extensions/v1.5.4/wasm_eh/parquet.duckdb_extension.wasm",
-      "bytes": 3218307,
-      "sha256": "4845705bbd69fc9ad52878d96a505c73cae4a6c509822079cc2413e5eb437f95"
+      "url": "https://extensions.duckdb.org/v2.0.0/wasm_eh/parquet.duckdb_extension.wasm",
+      "path": "extensions/v2.0.0/wasm_eh/parquet.duckdb_extension.wasm",
+      "bytes": 3219667,
+      "sha256": "d8dc437687baa417b55a2ed4d251f6c2fe92732cc7d8f7904845b63e7627ac7b"
     },
     {
-      "url": "https://extensions.duckdb.org/v1.5.4/wasm_mvp/parquet.duckdb_extension.wasm",
-      "path": "extensions/v1.5.4/wasm_mvp/parquet.duckdb_extension.wasm",
-      "bytes": 3021475,
-      "sha256": "b64c255a7f7d06cc234535b2f0ecab345fda91bffff5509d3179004bc13aa19a"
+      "url": "https://community-extensions.duckdb.org/v2.0.0/wasm_eh/zarr.duckdb_extension.wasm",
+      "path": "extensions/v2.0.0/wasm_eh/zarr.duckdb_extension.wasm",
+      "bytes": 4129819,
+      "sha256": "b28752c96e613b74a5575a7f0115d8084820f1c6a99c7f6f729e6babe34a465a"
     }
   ]
 }

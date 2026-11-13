@@ -1,5 +1,7 @@
 # Dataset qualification
 
+The original qualification below used Zarrita as a reference decoder. The demo now uses DuckDB-Zarr for image/label reads; see `docs/duckdb-zarr.md` for native-byte parity checks against both real sources. Historical evidence below is retained as an independent reference.
+
 Qualified **2026-11-12 UTC** (2026-11-11 US Mountain). Scope: metadata, bounded real chunk reads, instance semantics, single-plane/object crops, CORS, and independent decoding—not application implementation.
 
 ## Decision

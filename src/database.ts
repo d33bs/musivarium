@@ -2,34 +2,39 @@ import * as duckdb from '@duckdb/duckdb-wasm';
 import { tableFromJSON } from 'apache-arrow';
 import { cellRow, type Cell } from './pipeline';
 import { validateSelect } from './exports';
-const vendor = new URL(`${import.meta.env.BASE_URL}vendor/`, location.href).href;
+import runtimeAssets from '../scripts/runtime-assets.json';
+// Both dev modules (src/) and production bundles (assets/) are one level below
+// the app root. Unlike location.href, this also works inside the app worker.
+const vendor = new URL('../vendor/', import.meta.url).href.replace(/\/?$/, '/');
 let enginePromise:
   Promise<{ db: duckdb.AsyncDuckDB; connection: duckdb.AsyncDuckDBConnection }> | undefined;
 export function database() {
   return (enginePromise ??= openDatabase());
 }
 async function openDatabase() {
+  let db: duckdb.AsyncDuckDB | undefined;
+  let connection: duckdb.AsyncDuckDBConnection | undefined;
   try {
-    const bundle = await duckdb.selectBundle({
-        mvp: {
-          mainModule: vendor + 'duckdb-mvp.wasm',
-          mainWorker: vendor + 'duckdb-browser-mvp.worker.js',
-        },
-        eh: {
-          mainModule: vendor + 'duckdb-eh.wasm',
-          mainWorker: vendor + 'duckdb-browser-eh.worker.js',
-        },
-      }),
-      worker = new Worker(bundle.mainWorker!),
-      db = new duckdb.AsyncDuckDB(new duckdb.ConsoleLogger(duckdb.LogLevel.WARNING), worker);
-    await db.instantiate(bundle.mainModule);
-    await db.open({ query: { castBigIntToDouble: true, castTimestampToDate: true } });
-    const connection = await db.connect();
-    await connection.query(`SET custom_extension_repository='${vendor}extensions'`);
+    const worker = new Worker(vendor + 'duckdb-browser-base.worker.js', { type: 'module' });
+    db = new duckdb.AsyncDuckDB(new duckdb.ConsoleLogger(duckdb.LogLevel.WARNING), worker);
+    await db.instantiate(vendor + 'duckdb-base.wasm');
+    await db.open({
+      // The official community WASM fails signature validation in this runtime
+      // even though its source bytes are pinned. Only the hash-checked, same-
+      // origin artifacts below are loaded; automatic installation stays off.
+      allowUnsignedExtensions: true,
+      query: { castBigIntToDouble: true, castTimestampToDate: true },
+    });
+    connection = await db.connect();
+    const version = (await connection.query('SELECT version() AS version')).toArray()[0].version;
+    if (version !== runtimeAssets.engine)
+      throw Error(`Expected DuckDB ${runtimeAssets.engine}, received ${version}`);
     await connection.query('SET autoinstall_known_extensions=false');
     await connection.query('SET autoload_known_extensions=false');
     return { db, connection };
   } catch (e) {
+    await connection?.close().catch(() => {});
+    await db?.terminate().catch(() => {});
     enginePromise = undefined;
     throw Error(
       `Cannot start local DuckDB. Run npm run setup:assets and rebuild. ${e instanceof Error ? e.message : e}`,
@@ -77,12 +82,41 @@ export async function queryCells(sql: string) {
   };
 }
 let parquetPromise: Promise<void> | undefined;
+let zarrPromise: Promise<void> | undefined;
+async function loadPinnedExtension(name: 'parquet' | 'zarr') {
+  const asset = runtimeAssets.extensions.find((asset) =>
+    asset.path.endsWith(`/${name}.duckdb_extension.wasm`),
+  );
+  if (!asset) throw Error(`Missing ${name} extension pin`);
+  const url = new URL(asset.path, vendor);
+  if (url.origin !== location.origin) throw Error('Extension must be served from the app origin');
+  const response = await fetch(url, { signal: AbortSignal.timeout(60000) });
+  if (!response.ok) throw Error(`Extension download: HTTP ${response.status}`);
+  const bytes = await response.arrayBuffer();
+  if (bytes.byteLength !== asset.bytes) throw Error(`${name} extension size mismatch`);
+  const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), (byte) =>
+    byte.toString(16).padStart(2, '0'),
+  ).join('');
+  if (hash !== asset.sha256) throw Error(`${name} extension SHA-256 mismatch`);
+  const { connection } = await database();
+  // The WASM loader resolves LOAD by repository/name even after URL INSTALL.
+  // Keep that resolution on the same pinned, same-origin repository too.
+  await connection.query(
+    `SET custom_extension_repository='${new URL('extensions', vendor).href.replaceAll("'", "''")}'`,
+  );
+  await connection.query(`INSTALL ${name}`);
+  await connection.query(`LOAD ${name}`);
+}
+export async function ensureZarr(): Promise<void> {
+  return (zarrPromise ??= loadPinnedExtension('zarr').catch((e) => {
+    zarrPromise = undefined;
+    throw Error(
+      `Pinned official Zarr extension unavailable; run npm run setup:assets and rebuild. ${e instanceof Error ? e.message : e}`,
+    );
+  }));
+}
 async function ensureParquet() {
-  return (parquetPromise ??= (async () => {
-    const { connection } = await database();
-    await connection.query('INSTALL parquet');
-    await connection.query('LOAD parquet');
-  })().catch((e) => {
+  return (parquetPromise ??= loadPinnedExtension('parquet').catch((e) => {
     parquetPromise = undefined;
     throw Error(
       `Pinned local Parquet extension unavailable; run npm run setup:assets and rebuild. ${e instanceof Error ? e.message : e}`,

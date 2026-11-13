@@ -1,5 +1,5 @@
 import type { Pixels, Region } from '../core';
-import type { Alignment, NgffMetadata, NetworkStats, PlaneRequest } from './browser';
+import type { Alignment, NgffMetadata, NetworkStats, PlaneRequest } from './metadata';
 export interface ImageSource {
   readonly metadata: NgffMetadata;
   readonly stats: NetworkStats;
