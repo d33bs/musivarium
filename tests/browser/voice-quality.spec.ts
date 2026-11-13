@@ -78,6 +78,10 @@ test('a real decoder-loop transcript is flagged for review before saving, a norm
   await page.goto('/');
   await page.locator('.tile-voice-notes').first().click();
   await page.locator('#voice-record').click();
+  // Wait for the recording phase transition (elapsed resets to 0.0 in the same
+  // synchronous block that reveals Stop), so the threshold poll below starts
+  // from a guaranteed-fresh baseline instead of a possibly-stale prior value.
+  await expect(page.locator('#voice-stop')).toBeVisible();
   await expect
     .poll(async () => parseFloat((await page.locator('#voice-elapsed').textContent()) ?? '0'))
     .toBeGreaterThan(0.5);
@@ -91,10 +95,7 @@ test('a real decoder-loop transcript is flagged for review before saving, a norm
   await page.locator('.tile-voice-notes').first().click();
   await setControlText(page, 'Inspect the nucleus and cytoplasm. Review the segmentation outline.');
   await page.locator('#voice-record').click();
-  // #voice-elapsed only resets after permission settles; wait for that reset
-  // before polling a threshold, or a stale value from the first recording
-  // can satisfy the poll before any real capture happens.
-  await expect(page.locator('#voice-elapsed')).toHaveText('0.0 / 90 s');
+  await expect(page.locator('#voice-stop')).toBeVisible();
   await expect
     .poll(async () => parseFloat((await page.locator('#voice-elapsed').textContent()) ?? '0'))
     .toBeGreaterThan(0.5);
