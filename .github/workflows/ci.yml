@@ -22,6 +22,16 @@ jobs:
       - run: npm run format:check
       - run: npm run check
       - run: npx playwright install --with-deps chromium firefox
+      # Firefox's WebAudio backend can hang resuming an AudioContext when the
+      # runner has no real sound device; a dummy PulseAudio sink gives it one.
+      # Chromium's fake-media-stream flags don't need this.
+      - name: Start a dummy audio device for Firefox WebAudio tests
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y --no-install-recommends pulseaudio
+          pulseaudio -D --exit-idle-time=-1 --disallow-exit
+          pactl load-module module-null-sink sink_name=musivarium_dummy sink_properties=device.description=Musivarium_Dummy_Output
+          pactl set-default-sink musivarium_dummy
       - run: npm run test:browser
       - run: npm run test:static
       - run: npm audit --audit-level=moderate
