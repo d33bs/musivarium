@@ -21,6 +21,18 @@ Open the localhost address printed by Vite. Asset setup copies the pinned DuckDB
 
 A shared URL restores the sampling/display settings and loads the mosaic automatically. Invalid shared settings show an error without silently loading default data. Use Cancel to stop an automatic load.
 
+## Local voice notes
+
+Each mosaic tile has a microphone button opening a **Voice notes** box. The inspector also has a Voice notes button. Click **Record note**, grant microphone access, dictate up to 90 seconds, then **Stop & transcribe**. Correct the transcript and explicitly **Save note locally**. The warning appears at 80 seconds; capture stops automatically at 90. A temporary WAV preview is available before saving; audio is never persisted.
+
+- Audio is downmixed and actually resampled to 16-kHz mono floating-point PCM. Local Whisper Tiny English runs in a dedicated, cancellable worker via pinned Transformers.js. First transcription downloads external model files; merely opening the app or writing a manual note does not load ASR. Cache eviction/private browsing can prevent offline use.
+- Image/cell IDs, bounding region, level/T/Z/channels, segmentation version/model, seed and full run settings are locked when recording or writing begins. Reordering or changing the mosaic cannot reattach a saved note. The current UI annotates one tile at a time; the schema supports an array of cell IDs.
+- Notes survive refresh in IndexedDB on this browser/origin. List, edit, delete and export all/listed or individual notes as JSON. Export an unsaved draft if storage is blocked. Notes and audio are not uploaded, and notes are not included in share links. There is no application backend or service-backed speech fallback.
+- Manual typing works without microphone, model or persistent storage (export the draft in the latter case). Manual notes are labelled `source: manual`, never falsely attributed to Whisper.
+- Sampling and voice inference are serialized. Beginning recording releases the idle image-processing worker/model without discarding its mosaic or exports; the ASR worker is released after each transcription or cancellation. Subsequent image sampling recreates its worker as needed. The runtimes do not share inference sessions or memory, even though the npm ORT-Web version is deduplicated.
+
+Microphone capture needs HTTPS (GitHub Pages) or localhost and permission after an explicit click. No special server routes, cross-origin isolation or WebGPU are required. See [voice implementation and browser checks](docs/voice-notes.md) and [speech evaluation](docs/voice-evaluation.md). The new feature remains local until the reviewed changes are committed/pushed and the Pages workflow is dispatched.
+
 ## Included real datasets
 
 - **IDR0076 / 10501752:** 50-channel 2D breast-tumour tissue image with matching cell-section instance masks. Default display is channel 42, DNA1-191Ir; this intentionally overrides that channel's inactive metadata flag. Ali et al., CC BY 4.0. No calibrated spatial unit is supplied, so coordinates remain pixels.
@@ -47,7 +59,7 @@ Native pixel arrays and label IDs are preserved. Means use only the object's pix
 
 Sampling shuffles a non-overlapping image partition, then seeded object candidates within each region. It stops at the target or tile budget. Region sampling is **not uniform cell sampling**, and a mosaic is not a statistically representative cohort. Border objects are excluded by default. Stable image/label IDs deduplicate existing instances; inferred labels are scoped to region and backend.
 
-Limits: 32 regions, 128/256/512 px region sizes, 1–4 selected channels, target 1–1000 objects, four concurrent chunk requests, one segmentation job, 24 MiB compressed cache per source, 16 MiB per HTTP object, 64 MiB aggregate decoded-chunk reservation across concurrent reads, 96 MiB image+label response budget, and 48 MiB retained crop/mask arrays. These are logical budgets, not a browser process-memory guarantee. Runtime/model memory is additional. Cancellation terminates the processing worker; successful runs retain the idle model session for the next sample. No partial run is exported after cancellation or failure.
+Limits: 32 regions, 128/256/512 px region sizes, 1–4 selected channels, target 1–1000 objects, four concurrent chunk requests, one segmentation job, 24 MiB compressed cache per source, 16 MiB per HTTP object, 64 MiB aggregate decoded-chunk reservation across concurrent reads, 96 MiB image+label response budget, and 48 MiB retained crop/mask arrays. These are logical budgets, not a browser process-memory guarantee. Runtime/model memory is additional. Cancellation terminates the processing worker; successful runs retain the idle model session for the next sample unless a voice task releases it. No partial run is exported after cancellation or failure.
 
 ## Exports
 

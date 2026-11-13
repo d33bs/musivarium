@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "label": "SYNTHETIC SPEECH ONLY — not human, microphone, clinical, or real-device accuracy validation",
+  "generator": {
+    "program": "/usr/bin/say",
+    "voice": "Samantha",
+    "wordsPerMinute": 145,
+    "sampleRate": 16000,
+    "channels": 1
+  },
+  "normalization": "Lowercase Unicode letters/numbers; apostrophes removed; other punctuation becomes spaces; no domain aliases, number expansion, or spelling corrections.",
+  "clips": [
+    {
+      "id": "synthetic-01-nucleus-30s",
+      "targetSeconds": 30,
+      "segments": [
+        {
+          "seconds": 24,
+          "text": "The nucleus has a bright fluorescence signal and a smooth outer boundary. Compare its morphology with the neighboring cell before changing the segmentation threshold. The cytoplasm appears dimmer on this channel, although the membrane is still visible. Keep the original image intensity and record this observation without interpreting brightness as a diagnosis."
+        },
+        {
+          "seconds": 6,
+          "anchor": "amber lantern marks the nucleus",
+          "text": "Amber lantern marks the nucleus. Preserve this final sentence exactly once."
+        }
+      ]
+    },
+    {
+      "id": "synthetic-02-cytoplasm-30s",
+      "targetSeconds": 30,
+      "segments": [
+        {
+          "seconds": 24,
+          "text": "Inspect the cytoplasm around the central nucleus in this microscopy crop. A narrow region of fluorescence follows the edge, but the segmentation outline crosses a faint neighboring object. This note describes an uncertain boundary rather than a confirmed merge. Compare the raw pixels and the label image before deciding whether the current morphology measurement is trustworthy."
+        },
+        {
+          "seconds": 6,
+          "anchor": "cobalt feather marks the cytoplasm",
+          "text": "Cobalt feather marks the cytoplasm. Do not duplicate this closing observation."
+        }
+      ]
+    },
+    {
+      "id": "synthetic-03-segmentation-40s",
+      "targetSeconds": 40,
+      "segments": [
+        {
+          "seconds": 24,
+          "text": "The segmentation separates two touching nuclei but misses a small dark object near the corner. Increase neither contrast nor confidence automatically. First inspect the fluorescence channel and compare the predicted outline with the raw image. The visible morphology suggests an elongated nucleus, while the cytoplasm extends beyond the current crop and cannot be measured completely."
+        },
+        {
+          "seconds": 16,
+          "anchor": "silver compass marks the boundary",
+          "text": "Silver compass marks the boundary. Keep the small object separate from the larger cell. Record the uncertain edge as a review item and do not silently replace the original label. The next observation concerns background fluorescence rather than a new nucleus."
+        }
+      ]
+    },
+    {
+      "id": "synthetic-04-zarr-45s",
+      "targetSeconds": 45,
+      "segments": [
+        {
+          "seconds": 24,
+          "text": "Open the Zarr image at the selected resolution and retain the channel identity in this note. The nucleus is near the upper left of the crop. Its cytoplasm has uneven fluorescence, but that pattern may reflect background variation. Review the segmentation mask before comparing morphology across fields, because one truncated object touches the bottom image boundary."
+        },
+        {
+          "seconds": 21,
+          "anchor": "violet kettle marks the archive",
+          "text": "Violet kettle marks the archive. The Zarr chunks are storage units, not biological objects. Preserve the selected plane and avoid switching channels while this observation is recorded. A repeat visit should identify the same nucleus even if the display contrast changes. This is a synthetic microscopy note for transcription evaluation."
+        }
+      ]
+    },
+    {
+      "id": "synthetic-05-stardist-50s",
+      "targetSeconds": 50,
+      "segments": [
+        {
+          "seconds": 24,
+          "text": "StarDist predicts a compact nucleus in the center of the field. The fluorescence signal is strongest along one side, while the surrounding cytoplasm remains faint. Compare the segmentation outline with the actual boundary rather than assuming the model is correct. The morphology is roughly oval, with a small indentation that should remain visible in the exported crop."
+        },
+        {
+          "seconds": 26,
+          "anchor": "copper meadow marks the prediction",
+          "text": "Copper meadow marks the prediction. A neighboring nucleus lies close enough to confuse the outline, but the two centers are distinct. Keep this uncertainty in the note and review the raw intensity values. Zarr metadata describes the image geometry, not the confidence of this prediction. End with a separate reminder to check the lower edge before accepting the segmentation."
+        }
+      ]
+    },
+    {
+      "id": "synthetic-06-fluorescence-60s",
+      "targetSeconds": 60,
+      "segments": [
+        {
+          "seconds": 24,
+          "text": "Fluorescence is uneven across the central nucleus, with a bright patch near the right edge. The cytoplasm is visible but close to background intensity. This observation is about the selected channel only. Compare another channel before assigning a biological interpretation. Preserve the segmentation outline and inspect the native pixels so that display contrast does not hide a weak boundary."
+        },
+        {
+          "seconds": 25,
+          "anchor": "teal window marks the first transition",
+          "text": "Teal window marks the first transition. The second nucleus has a smoother morphology and a more uniform signal. Its neighboring cell touches the image border, so the crop does not contain a complete cytoplasm. StarDist may separate their centers while still drawing an uncertain shared boundary. Keep that limitation attached to this field rather than treating every object as equally reliable."
+        },
+        {
+          "seconds": 11,
+          "anchor": "scarlet pebble marks the second transition",
+          "text": "Scarlet pebble marks the second transition. Review the Zarr plane and the fluorescence channel before exporting this note. Keep each transition phrase once and retain the final reminder about the image border."
+        }
+      ]
+    },
+    {
+      "id": "synthetic-07-morphology-60s",
+      "targetSeconds": 60,
+      "segments": [
+        {
+          "seconds": 24,
+          "text": "The morphology differs between the two cells in this field. One nucleus is round and compact, while the other is elongated with a shallow indentation. The cytoplasm appears broader around the elongated cell. These descriptions come from a single microscopy plane and should not be treated as a complete three dimensional reconstruction. Check the segmentation before comparing their areas."
+        },
+        {
+          "seconds": 25,
+          "anchor": "indigo basket marks the shape review",
+          "text": "Indigo basket marks the shape review. The fluorescence channel shows a faint bridge between the objects, but that bridge may be background. StarDist places separate centers here. Review both outlines without merging them solely because the display looks connected. The Zarr source and selected channel should remain unchanged while this note is being recorded, and no object should inherit a neighboring observation."
+        },
+        {
+          "seconds": 11,
+          "anchor": "golden ribbon marks the closing review",
+          "text": "Golden ribbon marks the closing review. Record the uncertain bridge and compare the native crop later. Do not lose the final sentence when overlapping speech windows are merged into one transcript."
+        }
+      ]
+    },
+    {
+      "id": "synthetic-08-quality-70s",
+      "targetSeconds": 70,
+      "segments": [
+        {
+          "seconds": 24,
+          "text": "This microscopy quality review starts with the upper row of cells. The nucleus in the middle is sharply focused, but the lower edge of its cytoplasm is faint. The fluorescence signal is not saturated in the displayed crop. Inspect the raw values before accepting that impression. Segmentation quality and optical focus should be recorded separately rather than combined into one confidence score."
+        },
+        {
+          "seconds": 25,
+          "anchor": "marble orchard marks the focus check",
+          "text": "Marble orchard marks the focus check. The next object has an irregular morphology and touches a bright fragment near the image border. StarDist may include that fragment in the outline. Compare the predicted region with the native image and retain a note if the edge remains uncertain. The Zarr resolution level must be included when comparing this crop with a later visit."
+        },
+        {
+          "seconds": 21,
+          "anchor": "crimson ladder marks the export check",
+          "text": "Crimson ladder marks the export check. Exported measurements describe the current segmentation, not a verified biological ground truth. Keep the channel and image identity with the note. If the user edits the transcript, preserve the corrected words without changing the selected cell. This synthetic review ends with a reminder to inspect the bright fragment again."
+        }
+      ]
+    },
+    {
+      "id": "synthetic-09-comparison-80s",
+      "targetSeconds": 80,
+      "segments": [
+        {
+          "seconds": 24,
+          "text": "Compare the first field with the second field using the same microscopy channel. The central nucleus in the first crop has stronger fluorescence, but the display contrast differs. Use the raw intensity measurements for a fair comparison. The cytoplasm extends beyond one edge and cannot support a complete area estimate. Record this limitation before interpreting the difference in visible morphology."
+        },
+        {
+          "seconds": 25,
+          "anchor": "emerald saddle marks the field change",
+          "text": "Emerald saddle marks the field change. The second crop contains two close nuclei and a faint third object. Segmentation separates the main pair, while the smaller object remains uncertain. StarDist predictions should be checked against the native pixels. Keep the small object in the review list rather than deleting it because its fluorescence is weak. A low signal alone does not establish an empty region."
+        },
+        {
+          "seconds": 25,
+          "anchor": "saffron harbor marks the storage check",
+          "text": "Saffron harbor marks the storage check. The Zarr source stores several resolution levels, and the selected level changes the visible geometry. Do not compare pixel counts across levels without the physical scale. Preserve the plane, channel, and cell identity in this note. Inspect the lower boundary again and confirm that an adjacent object has not been attached to the same segmentation label."
+        },
+        {
+          "seconds": 6,
+          "anchor": "pearl wagon marks the conclusion",
+          "text": "Pearl wagon marks the conclusion. Keep the uncertainty in the final note."
+        }
+      ]
+    },
+    {
+      "id": "synthetic-10-long-review-90s",
+      "targetSeconds": 90,
+      "segments": [
+        {
+          "seconds": 24,
+          "text": "Begin the long microscopy review with the central nucleus and its surrounding cytoplasm. Fluorescence is strongest near the top of the crop, while the lower region is dimmer. The segmentation outline includes a narrow extension that may belong to a neighboring cell. Review the native pixels before changing that outline. Record the morphology as irregular rather than assigning a diagnostic interpretation."
+        },
+        {
+          "seconds": 25,
+          "anchor": "bronze telescope marks the first crossing",
+          "text": "Bronze telescope marks the first crossing. The second nucleus appears compact and has a smoother boundary. StarDist predicts a separate center, but the two outlines nearly touch. Check whether a faint fluorescence bridge reflects signal or background. The current Zarr plane contains only one depth position, so this note cannot describe the complete volume. Keep the comparison limited to what is visible here."
+        },
+        {
+          "seconds": 25,
+          "anchor": "azure notebook marks the second crossing",
+          "text": "Azure notebook marks the second crossing. The third object lies near the lower edge, where part of the cytoplasm is missing from the crop. Its morphology measurement should be flagged as incomplete. Preserve the source image and selected channel when saving this observation. If the transcript misspells segmentation or fluorescence, correct those words before using the note in a scientific report or sharing it with colleagues."
+        },
+        {
+          "seconds": 16,
+          "anchor": "plum bicycle marks the final crossing",
+          "text": "Plum bicycle marks the final crossing. This final section is new speech rather than a repeated short recording or a long silent tail. Review each boundary phrase once. Keep the uncertainty about the third object, retain the Zarr source context, and end with a reminder to verify the native image."
+        }
+      ]
+    }
+  ]
+}

@@ -12,6 +12,8 @@ import type { NgffMetadata, Alignment } from './sources/browser';
 import type { NetworkProgress } from './sources/read-session';
 import { drawCrop, seededOrder } from './render';
 import { download, cropArchive, provenance } from './exports';
+import { VoiceNotesPanel } from './voice/VoiceNotesPanel';
+import { associationKey, contextForCell } from './voice/context';
 const $ = <T extends HTMLElement>(selector: string) => document.querySelector<T>(selector)!;
 $('#app').innerHTML = `
 <header class="topbar"><a class="wordmark" href="./">musivarium<span class="mark" aria-hidden="true">▦</span></a><button id="about-toggle" type="button" class="about-toggle"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.3"></circle><circle cx="8" cy="4.7" r="0.9" fill="currentColor"></circle><path d="M8 7.2v4.6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"></path></svg>About</button><a class="source-link" href="https://github.com/d33bs/musivarium" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path></svg>Source</a></header>
@@ -43,9 +45,9 @@ $('#app').innerHTML = `
 <div id="mosaic-scroll" class="mosaic-scroll" tabindex="0" aria-label="Scrollable single-object mosaic"><div id="empty" class="empty"><span class="empty-glyph" aria-hidden="true">▦</span><p>Small samples.<br>Unexpected details.</p><span>Choose a source, a plane, and a seed.</span></div><div id="mosaic" role="grid" aria-label="Single-object image crops"></div></div>
 <div class="mosaic-caption">Each tile is one object-centered crop, shown in grayscale with a green outline on the focused instance. Click or press Enter to inspect. Display contrast is per crop; means are measured on raw pixels.</div>
 <p class="credit" id="credit">Default: IDR0076, Ali et al., CC BY 4.0. Verified 2D tissue cell labels. Display override: channel 42, DNA1-191Ir. Images hosted by IDR / EMBL-EBI.</p><div class="export-row"><span>Export this view</span><button id="csv" class="secondary" disabled>CSV</button><button id="parquet" class="secondary" disabled>Parquet</button><button id="raw" class="secondary" disabled>Native crops ZIP</button><button id="mosaic-png" class="secondary" disabled>Mosaic PNG</button><button id="manifest" class="secondary" disabled>Run JSON</button></div>
-<pre id="run-details" hidden>No run yet.</pre></section></main>
-<dialog id="about"><div class="dialog-head"><h2>About</h2><button id="close-about" class="secondary" aria-label="Close about dialog">Close ×</button></div><p>musivarium samples single-plane, single-object crops from large OME-NGFF / IDR microscopy images, directly in the browser. No image data is uploaded to a server.</p><ul class="about-tech"><li><a href="https://ngff.openmicroscopy.org/" target="_blank" rel="noopener">OME-NGFF / OME-Zarr</a> — the chunked, cloud-native image format read here.</li><li><a href="https://github.com/xqlsystems/duckdb-zarr" target="_blank" rel="noopener">DuckDB-Zarr</a> — decodes original Zarr chunks and reads image and label pixels through SQL in WASM. Bounded browser downloads feed complete single-chunk in-memory views; source coordinates are preserved.</li><li><a href="https://duckdb.org/docs/api/wasm/overview" target="_blank" rel="noopener">DuckDB-WASM</a> — local SQL engine behind the CSV/Parquet export.</li><li><a href="https://onnxruntime.ai/docs/tutorials/web/" target="_blank" rel="noopener">ONNX Runtime Web</a> — runs the pretrained StarDist nuclei model client-side.</li><li><a href="https://github.com/101arrowz/fflate" target="_blank" rel="noopener">fflate</a> — native-crop ZIP archive export.</li><li><a href="https://vite.dev/" target="_blank" rel="noopener">Vite</a> + <a href="https://www.typescriptlang.org/" target="_blank" rel="noopener">TypeScript</a> — build tooling and app code.</li></ul><p class="hint">Source: <a href="https://github.com/d33bs/musivarium" target="_blank" rel="noopener">github.com/d33bs/musivarium</a></p></dialog>
-<dialog id="inspector"><div class="dialog-head"><h2>Object inspector</h2><button id="close" class="secondary" aria-label="Close object inspector">Close ×</button></div><div class="inspector-grid"><div><canvas id="inspector-canvas" aria-label="Selected object crop"></canvas><p class="hint">One plane, native pixel aspect ratio.</p><button id="crop-png" class="secondary">Save preview PNG</button></div><div><h3 id="object-title"></h3><dl id="object-fields"></dl><canvas id="origin" width="320" height="220" aria-label="Source coordinate map"></canvas><p class="hint">Source-coordinate map, not a whole-image download. Boxes mark sampled regions.</p><a id="source-link" target="_blank" rel="noopener">Open source in NGFF validator ↗</a></div></div></dialog>`;
+<section id="voice-notes" aria-label="Local voice notes"></section><pre id="run-details" hidden>No run yet.</pre></section></main>
+<dialog id="about"><div class="dialog-head"><h2>About</h2><button id="close-about" class="secondary" aria-label="Close about dialog">Close ×</button></div><p>musivarium samples single-plane, single-object crops from large OME-NGFF / IDR microscopy images, directly in the browser. No image data is uploaded to a server.</p><ul class="about-tech"><li><a href="https://ngff.openmicroscopy.org/" target="_blank" rel="noopener">OME-NGFF / OME-Zarr</a> — the chunked, cloud-native image format read here.</li><li><a href="https://github.com/xqlsystems/duckdb-zarr" target="_blank" rel="noopener">DuckDB-Zarr</a> — decodes original Zarr chunks and reads image and label pixels through SQL in WASM. Bounded browser downloads feed complete single-chunk in-memory views; source coordinates are preserved.</li><li><a href="https://duckdb.org/docs/api/wasm/overview" target="_blank" rel="noopener">DuckDB-WASM</a> — local SQL engine behind the CSV/Parquet export.</li><li><a href="https://onnxruntime.ai/docs/tutorials/web/" target="_blank" rel="noopener">ONNX Runtime Web</a> — runs the pretrained StarDist nuclei model client-side.</li><li><a href="https://huggingface.co/docs/transformers.js" target="_blank" rel="noopener">Transformers.js</a> + <a href="https://huggingface.co/onnx-community/whisper-tiny.en" target="_blank" rel="noopener">Whisper Tiny English</a> — optional local voice transcription in a dedicated worker, using ONNX Runtime Web. Model downloads happen on first transcription, not page load. Notes are saved only in this browser’s IndexedDB; audio is not stored or uploaded.</li><li><a href="https://github.com/101arrowz/fflate" target="_blank" rel="noopener">fflate</a> — native-crop ZIP archive export.</li><li><a href="https://vite.dev/" target="_blank" rel="noopener">Vite</a> + <a href="https://www.typescriptlang.org/" target="_blank" rel="noopener">TypeScript</a> — build tooling and app code.</li></ul><p class="hint">Source: <a href="https://github.com/d33bs/musivarium" target="_blank" rel="noopener">github.com/d33bs/musivarium</a></p></dialog>
+<dialog id="inspector"><div class="dialog-head"><h2>Object inspector</h2><button id="close" class="secondary" aria-label="Close object inspector">Close ×</button></div><div class="inspector-grid"><div><canvas id="inspector-canvas" aria-label="Selected object crop"></canvas><p class="hint">One plane, native pixel aspect ratio.</p><button id="crop-png" class="secondary">Save preview PNG</button><button id="inspector-voice" class="secondary" type="button">Voice notes</button></div><div><h3 id="object-title"></h3><dl id="object-fields"></dl><canvas id="origin" width="320" height="220" aria-label="Source coordinate map"></canvas><p class="hint">Source-coordinate map, not a whole-image download. Boxes mark sampled regions.</p><a id="source-link" target="_blank" rel="noopener">Open source in NGFF validator ↗</a></div></div></dialog>`;
 let settings: Settings;
 let initialSettingsValid = true;
 try {
@@ -66,6 +68,27 @@ let result: RunResult | undefined,
   runStarted = 0,
   firstBatchMs = 0,
   running = false;
+const voiceCounts = new Map<string, number>();
+const voiceNotes = new VoiceNotesPanel($('#voice-notes'), {
+  prepareRecording: () => {
+    if (running)
+      throw Error(
+        'Wait for image processing to finish, or cancel it before recording. Manual notes remain available.',
+      );
+    // Results/crops stay intact; release the idle StarDist session before ASR allocates its own.
+    worker?.terminate();
+    worker = undefined;
+  },
+  onChange: (notes) => {
+    voiceCounts.clear();
+    for (const note of notes)
+      for (const id of note.selectedCellIds) {
+        const key = associationKey(note, id);
+        voiceCounts.set(key, (voiceCounts.get(key) ?? 0) + 1);
+      }
+    renderGrid();
+  },
+});
 function setStatus(text: string, error = false) {
   $('#status').textContent = text;
   $('#status').hidden = !text;
@@ -298,6 +321,10 @@ function displayMetadata(
   });
 }
 function start(action: 'run' | 'inspect') {
+  if (voiceNotes.isBusy) {
+    setStatus('Finish or cancel the voice task before starting image processing.', true);
+    return;
+  }
   let s: Settings;
   try {
     s = readSettings();
@@ -530,7 +557,28 @@ function renderGrid() {
           .querySelector<HTMLButtonElement>(`button[data-id="${visible[next].cell_id}"]`)
           ?.focus({ preventScroll: true });
       };
-      grid.append(tile);
+      const voice = document.createElement('button');
+      voice.type = 'button';
+      voice.className = 'tile-voice-notes';
+      voice.style.cssText = `top:${row * step + 4}px;left:${col * step + size - 26}px`;
+      const noteCount = voiceCounts.get(associationKey(contextForCell(cell), cell.cell_id)) ?? 0;
+      voice.classList.toggle('has-notes', noteCount > 0);
+      voice.title = `Voice notes${noteCount ? ` · ${noteCount} saved` : ''}`;
+      voice.setAttribute(
+        'aria-label',
+        `Voice notes for ${cell.cell_id}${noteCount ? `, ${noteCount} saved` : ''}`,
+      );
+      voice.setAttribute('aria-haspopup', 'dialog');
+      voice.setAttribute('aria-controls', 'voice-notes-dialog');
+      voice.innerHTML =
+        '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="5.5" y="1" width="5" height="8" rx="2.5"/><path d="M3 6.5v1a5 5 0 0 0 10 0v-1M8 12.5V15M5.5 15h5"/></svg>';
+      if (noteCount) {
+        const count = document.createElement('span');
+        count.textContent = String(noteCount);
+        voice.append(count);
+      }
+      voice.onclick = () => voiceNotes.open(contextForCell(cell));
+      grid.append(tile, voice);
     }
 }
 $('#mosaic-scroll').onscroll = () => {
@@ -607,6 +655,12 @@ function drawInspector() {
     Math.max(3, selected.height * scale),
   );
 }
+button('inspector-voice').onclick = () => {
+  if (!selected) return;
+  const context = contextForCell(selected);
+  $<HTMLDialogElement>('#inspector').close();
+  voiceNotes.open(context);
+};
 button('close').onclick = () => $<HTMLDialogElement>('#inspector').close();
 button('share').onclick = async () => {
   try {

@@ -78,13 +78,48 @@ for (const prefix of ['', '/musivarium']) {
           page = await context.newPage(),
           errors = [],
           unexpected = [],
-          software = [];
+          software = [],
+          voiceModelRequests = [],
+          voiceAssets = [];
         page.on('pageerror', (e) => errors.push(e.message));
+        page.on('request', (req) => {
+          if (/asr\.worker|transformers/i.test(req.url())) voiceAssets.push(req.url());
+        });
+        await context.addInitScript(() => {
+          const streams = [];
+          Object.defineProperty(globalThis, '__voiceTrackStates', {
+            get: () => streams.flatMap((s) => s.getTracks().map((t) => t.readyState)),
+          });
+          Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+            value: async () => {
+              const audio = new AudioContext({ sampleRate: 48000 });
+              await audio.resume();
+              const oscillator = audio.createOscillator(),
+                destination = audio.createMediaStreamDestination();
+              oscillator.connect(destination);
+              oscillator.start();
+              for (const track of destination.stream.getTracks()) {
+                const stop = track.stop.bind(track);
+                track.stop = () => {
+                  stop();
+                  oscillator.stop();
+                  void audio.close();
+                };
+              }
+              streams.push(destination.stream);
+              return destination.stream;
+            },
+          });
+        });
         await context.route('**/*', async (route) => {
           const url = route.request().url();
           if (url.startsWith(origin)) {
             if (url.includes('/models/') || url.includes('/vendor/')) software.push(url);
             return route.continue();
+          }
+          if (new URL(url).hostname === 'huggingface.co') {
+            voiceModelRequests.push({ url, method: route.request().method() });
+            return route.abort('blockedbyclient'); // Explicit model-download-failure control, not fake ASR.
           }
           const fixture = fixtures.get(url);
           if (!fixture) {
@@ -142,6 +177,71 @@ for (const prefix of ['', '/musivarium']) {
           throw Error('No real weight request');
         if (model.stats.objects.some((o) => o.url.includes('/labels/')))
           throw Error('Model path unexpectedly fetched labels');
+        if (voiceAssets.length || voiceModelRequests.length)
+          throw Error('ASR loaded at page startup');
+        const voiceCell = await page.locator('.object-tile').first().getAttribute('data-id');
+        await page.locator('.tile-voice-notes').first().click();
+        await page.locator('#voice-record').click();
+        await page.waitForFunction(
+          () => parseFloat(document.querySelector('#voice-elapsed').textContent) > 0.5,
+          undefined,
+          { timeout: 15000 },
+        );
+        await page.locator('#voice-stop').click();
+        await page.waitForFunction(
+          () => !document.querySelector('#voice-retry').hidden,
+          undefined,
+          { timeout: 60000 },
+        );
+        if (!voiceAssets.some((url) => /asr\.worker/.test(url)) || !voiceModelRequests.length)
+          throw Error('Production ASR worker/model-loading path was not exercised');
+        if (voiceModelRequests.some((req) => req.method !== 'GET'))
+          throw Error('Unexpected model request method');
+        if (
+          !(await page.evaluate(() =>
+            globalThis.__voiceTrackStates.every((state) => state === 'ended'),
+          ))
+        )
+          throw Error('Microphone track retained after Stop');
+        await page
+          .locator('#voice-text')
+          .fill('Static production manual note: nucleus, cytoplasm, Zarr, StarDist.');
+        await page.locator('#voice-save').click();
+        await page.waitForFunction(
+          () => document.querySelectorAll('.voice-saved-note').length === 1,
+          undefined,
+          { timeout: 15000 },
+        );
+        const noteDownload = page.waitForEvent('download', { timeout: 15000 });
+        await page.locator('#voice-export').click();
+        const noteFile = join(evidence, `${name}-${prefix ? 'prefix' : 'root'}-notes.json`);
+        await (await noteDownload).saveAs(noteFile);
+        const notes = JSON.parse(await readFile(noteFile, 'utf8')).notes;
+        if (
+          notes.length !== 1 ||
+          notes[0].selectedCellIds[0] !== voiceCell ||
+          notes[0].imageId !== native.settings.source ||
+          notes[0].source !== 'manual'
+        )
+          throw Error('Voice note source/context/export mismatch');
+        await page.locator('#voice-close').click();
+        await page.reload();
+        await page.locator('#voice-all').click();
+        await page.waitForFunction(
+          () => document.querySelectorAll('.voice-saved-note').length === 1,
+          undefined,
+          { timeout: 15000 },
+        );
+        if (
+          !(await page.locator('.voice-note-text').textContent()).includes(
+            'Static production manual note',
+          )
+        )
+          throw Error('Note did not survive refresh');
+        await page.screenshot({
+          path: join(evidence, `${name}-${prefix ? 'prefix' : 'root'}-voice-notes.png`),
+          fullPage: true,
+        });
         if (errors.length || unexpected.length) throw Error(JSON.stringify({ errors, unexpected }));
         const report = {
           prefix: prefix || '/',
@@ -153,6 +253,9 @@ for (const prefix of ['', '/musivarium']) {
           modelObjects: model.cell_count,
           modelMilliseconds: model.timings.segmentation,
           softwareRequests: software.length,
+          voiceWorkerAssets: voiceAssets,
+          voiceModelFailureControl: voiceModelRequests,
+          savedNotes: notes.length,
           errors,
           unexpected,
         };
