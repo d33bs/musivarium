@@ -30,6 +30,7 @@ const mime = {
   '.wasm': 'application/wasm',
   '.css': 'text/css',
   '.json': 'application/json',
+  '.svg': 'image/svg+xml',
   '.onnx': 'application/octet-stream',
 };
 const reports = [];
@@ -150,6 +151,26 @@ for (const prefix of ['', '/musivarium']) {
             '?source=' +
             encodeURIComponent(fixtureManifests.get('idr0076').attribution.source),
         );
+        const iconUrl = await page.locator('link[rel="icon"]').evaluate((link) => link.href);
+        if (iconUrl !== base + 'favicon.svg') throw Error(`Favicon escaped site base: ${iconUrl}`);
+        const icon = await page.request.get(iconUrl);
+        if (
+          !icon.ok() ||
+          !icon.headers()['content-type']?.includes('image/svg+xml') ||
+          !(await icon.text()).includes('viewBox="0 0 64 64"')
+        )
+          throw Error('Built four-quad favicon is missing or invalid');
+        const iconLoads = await page.evaluate(async () => {
+          const image = new Image();
+          image.src = document.querySelector('link[rel="icon"]').href;
+          try {
+            await image.decode();
+            return image.naturalWidth === 64 && image.naturalHeight === 64;
+          } catch {
+            return false;
+          }
+        });
+        if (!iconLoads) throw Error('Browser could not decode the favicon');
         if (!(await page.locator('#source').isHidden()))
           throw Error('Settings did not start collapsed');
         await page.waitForFunction(() => !document.querySelector('#raw')?.disabled, undefined, {
